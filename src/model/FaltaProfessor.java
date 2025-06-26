@@ -74,7 +74,7 @@ public class FaltaProfessor {
     public Usuario getUsuarioRegistro() {
         return usuarioRegistro;
     }
-    public void setUsuarioRegistrou(Usuario usuarioRegistrou) { 
-        this.usuarioRegistro = usuarioRegistrou; 
+    public void setUsuarioRegistro(Usuario usuarioRegistro) { 
+        this.usuarioRegistro = usuarioRegistro; 
     }
 }

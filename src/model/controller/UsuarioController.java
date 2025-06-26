@@ -8,49 +8,43 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-import model.dao.UsuarioDao;
-import model.Usuario;
-
 import java.sql.SQLException;
+import model.Usuario;
+import model.dao.UsuarioDao;
 
 public class UsuarioController {
+
     private UsuarioDao usuarioDao;
 
     public UsuarioController() {
         this.usuarioDao = new UsuarioDao();
     }
 
-    public boolean cadastrarUsuario(Usuario u) {
+    public String cadastrarUsuario(Usuario usuario) {
         try {
-            usuarioDao.cadastrarUsuario(u);
-            return true;
+            usuarioDao.cadastrarUsuario(usuario);
+            return "Usuário cadastrado com sucesso.";
         } catch (SQLException e) {
-            System.err.println("Erro no controller ao cadastrar usuario: " + e.getMessage());
-            return false;
+            e.printStackTrace();
+            return "Erro ao cadastrar usuário: " + e.getMessage();
         }
     }
 
-    public Usuario autenticar(String login, String senha) {
+    public Usuario buscarUsuarioPorLogin(String login) {
         try {
-            Usuario usuario = usuarioDao.buscarPorLogin(login);
-            if (usuario != null && usuario.getSenha() != null) {
-                String senhaCriptografada = model.util.Criptografia.sha256(senha);
-                if (senhaCriptografada.equals(usuario.getSenha())) {
-                    return usuario;
-                }
-            }
+            return usuarioDao.buscarPorLogin(login);
         } catch (SQLException e) {
-            System.err.println("Erro ao autenticar: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
-    public boolean loginExiste(String login) {
+    public boolean verificarSeLoginExiste(String login) {
         try {
             return usuarioDao.loginExiste(login);
         } catch (SQLException e) {
-            System.err.println("Erro ao verificar login: " + e.getMessage());
-            return true;
+            e.printStackTrace();
+            return false;
         }
     }
 }
