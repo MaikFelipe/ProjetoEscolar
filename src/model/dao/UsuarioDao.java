@@ -15,6 +15,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsuarioDao {
 
@@ -46,7 +48,7 @@ public class UsuarioDao {
             stmt.setString(5, u.getCargo());
             stmt.setString(6, u.getLogin());
 
-            String senhaCriptografada = Criptografia.sha256(u.getSenha());
+            String senhaCriptografada = Criptografia.criptografar(u.getSenha());
             stmt.setString(7, senhaCriptografada);
 
             stmt.setString(8, u.getNivelAcesso());
@@ -83,5 +85,29 @@ public class UsuarioDao {
             throw e;
         }
         return null;
+    }
+    
+    public List<Usuario> listarPorNivelAcesso(String nivel) throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM usuario WHERE nivel_acesso = ?";
+
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, nivel);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId(rs.getInt("id"));
+                    u.setNomeCompleto(rs.getString("nome_completo"));
+                    u.setCpf(rs.getString("cpf"));
+                    u.setEmail(rs.getString("email"));
+                    u.setTelefone(rs.getString("telefone"));
+                    u.setCargo(rs.getString("cargo"));
+                    u.setLogin(rs.getString("login"));
+                    u.setNivelAcesso(rs.getString("nivel_acesso"));
+                    lista.add(u);
+                }
+            }
+        }
+        return lista;
     }
 }

@@ -19,7 +19,7 @@ public class Criptografia {
      * @param senha A senha em texto puro.
      * @return String com o hash hexadecimal da senha.
      */
-    public static String sha256(String senha) {
+    public static String criptografar(String senha) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(senha.getBytes("UTF-8"));
@@ -34,4 +34,5 @@ public class Criptografia {
             throw new RuntimeException("Erro ao criptografar senha: " + ex.getMessage(), ex);
         }
     }
+    
 }
