@@ -60,12 +60,7 @@ public class FrequenciaController {
         }
     }
 
-    public List<Frequencia> listarFrequencias() {
-        try {
-            return frequenciaDAO.listarTodas();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<Frequencia> listarFrequenciasPorAluno(int id) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }

@@ -17,7 +17,7 @@ import model.util.Conexao;
 public class AlunoDAO {
     
     public void inserir(Aluno aluno) throws SQLException {
-        String sql = "INSERT INTO aluno (nome_completo, data_nascimento, cpf, endereco_completo, telefone, nome_responsavel, cpf_responsavel, email_responsavel, telefone_responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO aluno (nome_completo, data_nascimento, cpf, endereco, telefone, nome_responsavel, cpf_responsavel, email_responsavel, telefone_responsavel) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, aluno.getNomeCompleto());
             stmt.setDate(2, Date.valueOf(aluno.getDataNascimento()));
@@ -57,7 +57,7 @@ public class AlunoDAO {
     }
 
     public void atualizar(Aluno aluno) throws SQLException {
-        String sql = "UPDATE aluno SET nome_completo=?, data_nascimento=?, cpf=?, endereco_completo=?, telefone=?, nome_responsavel=?, cpf_responsavel=?, email_responsavel=?, telefone_responsavel=? WHERE id=?";
+        String sql = "UPDATE aluno SET nome_completo=?, data_nascimento=?, cpf=?, endereco=?, telefone=?, nome_responsavel=?, cpf_responsavel=?, email_responsavel=?, telefone_responsavel=? WHERE id=?";
         try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, aluno.getNomeCompleto());
             stmt.setDate(2, Date.valueOf(aluno.getDataNascimento()));
@@ -87,7 +87,7 @@ public class AlunoDAO {
         a.setNomeCompleto(rs.getString("nome_completo"));
         a.setDataNascimento(rs.getDate("data_nascimento").toLocalDate());
         a.setCpf(rs.getString("cpf"));
-        a.setEnderecoCompleto(rs.getString("endereco_completo"));
+        a.setEnderecoCompleto(rs.getString("endereco"));
         a.setTelefone(rs.getString("telefone"));
         a.setNomeResponsavel(rs.getString("nome_responsavel"));
         a.setCpfResponsavel(rs.getString("cpf_responsavel"));

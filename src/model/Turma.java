@@ -87,4 +87,9 @@ public class Turma {
     public void setNumeroMaximoAlunos(int numeroMaximoAlunos) {
         this.numeroMaximoAlunos = numeroMaximoAlunos; 
     }
+    
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

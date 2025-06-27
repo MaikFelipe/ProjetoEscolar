@@ -7,10 +7,11 @@ package model.dao;
 /**
  *
  * @author LASEDi 1781
- */
+ * **/
 import model.Usuario;
 import model.util.Conexao;
 import model.util.Criptografia;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,7 +41,6 @@ public class UsuarioDao {
 
         String sql = "INSERT INTO usuario (nome_completo, cpf, email, telefone, cargo, login, senha, nivel_acesso) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, u.getNomeCompleto());
             stmt.setString(2, u.getCpf());
             stmt.setString(3, u.getEmail());
@@ -54,17 +54,41 @@ public class UsuarioDao {
             stmt.setString(8, u.getNivelAcesso());
 
             stmt.executeUpdate();
+        }
+    }
 
-        } catch (SQLException e) {
-            System.err.println("Erro ao cadastrar usuario: " + e.getMessage());
-            throw e;
+    public void atualizar(Usuario u) throws SQLException {
+        String sql = "UPDATE usuario SET nome_completo = ?, cpf = ?, email = ?, telefone = ?, cargo = ?, login = ?, senha = ?, nivel_acesso = ? WHERE id = ?";
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, u.getNomeCompleto());
+            stmt.setString(2, u.getCpf());
+            stmt.setString(3, u.getEmail());
+            stmt.setString(4, u.getTelefone());
+            stmt.setString(5, u.getCargo());
+            stmt.setString(6, u.getLogin());
+
+            // Caso queira atualizar a senha, criptografa
+            String senhaCriptografada = Criptografia.criptografar(u.getSenha());
+            stmt.setString(7, senhaCriptografada);
+
+            stmt.setString(8, u.getNivelAcesso());
+            stmt.setInt(9, u.getId());
+
+            stmt.executeUpdate();
+        }
+    }
+
+    public void excluir(int id) throws SQLException {
+        String sql = "DELETE FROM usuario WHERE id = ?";
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
         }
     }
 
     public Usuario buscarPorLogin(String login) throws SQLException {
         String sql = "SELECT * FROM usuario WHERE login = ?";
         try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, login);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -77,20 +101,61 @@ public class UsuarioDao {
                     u.setCargo(rs.getString("cargo"));
                     u.setLogin(rs.getString("login"));
                     u.setNivelAcesso(rs.getString("nivel_acesso"));
+                    u.setSenha(rs.getString("senha"));
                     return u;
                 }
             }
-        } catch (SQLException e) {
-            System.err.println("Erro ao buscar usuario: " + e.getMessage());
-            throw e;
         }
         return null;
     }
-    
+
+    public Usuario buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM usuario WHERE id = ?";
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Usuario u = new Usuario();
+                    u.setId(rs.getInt("id"));
+                    u.setNomeCompleto(rs.getString("nome_completo"));
+                    u.setCpf(rs.getString("cpf"));
+                    u.setEmail(rs.getString("email"));
+                    u.setTelefone(rs.getString("telefone"));
+                    u.setCargo(rs.getString("cargo"));
+                    u.setLogin(rs.getString("login"));
+                    u.setNivelAcesso(rs.getString("nivel_acesso"));
+                    u.setSenha(rs.getString("senha"));
+                    return u;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<Usuario> listarTodos() throws SQLException {
+        List<Usuario> lista = new ArrayList<>();
+        String sql = "SELECT * FROM usuario";
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setId(rs.getInt("id"));
+                u.setNomeCompleto(rs.getString("nome_completo"));
+                u.setCpf(rs.getString("cpf"));
+                u.setEmail(rs.getString("email"));
+                u.setTelefone(rs.getString("telefone"));
+                u.setCargo(rs.getString("cargo"));
+                u.setLogin(rs.getString("login"));
+                u.setNivelAcesso(rs.getString("nivel_acesso"));
+                lista.add(u);
+            }
+        }
+        return lista;
+    }
+
     public List<Usuario> listarPorNivelAcesso(String nivel) throws SQLException {
         List<Usuario> lista = new ArrayList<>();
         String sql = "SELECT * FROM usuario WHERE nivel_acesso = ?";
-
         try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, nivel);
             try (ResultSet rs = stmt.executeQuery()) {

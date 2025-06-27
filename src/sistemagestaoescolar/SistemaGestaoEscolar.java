@@ -4,6 +4,9 @@
  */
 package sistemagestaoescolar;
 
+import model.Usuario;
+import model.controller.UsuarioController;
+
 /**
  *
  * @author LASEDi 1781
@@ -14,7 +17,18 @@ public class SistemaGestaoEscolar {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        // TODO code application logic here
+        Usuario u = new Usuario();
+        u.setNomeCompleto("Administrador");
+        u.setCpf("00000000000");
+        u.setEmail("admin@escola.com");
+        u.setTelefone("000000000");
+        u.setCargo("Administrador");
+        u.setLogin("admin");
+        u.setSenha("1234");
+        u.setNivelAcesso("admin");
+
+        UsuarioController controller = new UsuarioController();
+        String resultado = controller.cadastrarUsuario(u);
+        System.out.println(resultado);
     }
-    
 }

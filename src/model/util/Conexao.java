@@ -16,7 +16,7 @@ public class Conexao {
     public static Connection getConexao() throws SQLException {
         String url = "jdbc:mysql://localhost:3306/gestao_escola";
         String usuario = "root";
-        String senha = "senha123";
+        String senha = "";
         return DriverManager.getConnection(url, usuario, senha);
     }
 }
