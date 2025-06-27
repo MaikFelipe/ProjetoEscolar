@@ -8,64 +8,37 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+// EscolaController.java
+import model.dao.EscolaDAO;
+import model.Escola;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import model.Escola;
-import model.dao.EscolaDAO;
 
 public class EscolaController {
+    private EscolaDAO dao;
 
-    private EscolaDAO escolaDAO;
-
-    public EscolaController() {
-        this.escolaDAO = new EscolaDAO();
+    public EscolaController(Connection connection) {
+        this.dao = new EscolaDAO(connection);
     }
 
-    public String cadastrarEscola(Escola escola) {
-        try {
-            escolaDAO.inserir(escola);
-            return "Escola cadastrada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao cadastrar escola: " + e.getMessage();
+    public void salvar(Escola e) throws SQLException {
+        if (e.getId() == 0) {
+            dao.inserir(e);
+        } else {
+            dao.atualizar(e);
         }
     }
 
-    public String atualizarEscola(Escola escola) {
-        try {
-            escolaDAO.atualizar(escola);
-            return "Escola atualizada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao atualizar escola: " + e.getMessage();
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public String deletarEscola(int id) {
-        try {
-            escolaDAO.deletar(id);
-            return "Escola deletada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao deletar escola: " + e.getMessage();
-        }
+    public Escola buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public Escola buscarEscolaPorId(int id) {
-        try {
-            return escolaDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<Escola> listarEscolas() {
-        try {
-            return escolaDAO.listarTodas();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<Escola> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

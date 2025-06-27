@@ -11,10 +11,12 @@ package model.view;
 import model.Disciplina;
 import model.Usuario;
 import model.controller.DisciplinaController;
+import model.util.Conexao;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -32,10 +34,19 @@ public class TelaCadastroDisciplina extends JFrame {
 
     public TelaCadastroDisciplina(Usuario usuario) {
         this.usuarioLogado = usuario;
-        controller = new DisciplinaController();
+
+        try {
+            Connection conexao = Conexao.getConexao();
+            controller = new DisciplinaController(conexao);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + e.getMessage());
+            System.exit(1);
+        }
+
         setTitle("Cadastro de Disciplina");
         setExtendedState(MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
         initComponents();
         carregarDisciplinas();
         setVisible(true);
@@ -80,7 +91,10 @@ public class TelaCadastroDisciplina extends JFrame {
         btnSalvar.addActionListener(e -> salvarDisciplina());
         btnAtualizar.addActionListener(e -> atualizarDisciplina());
         btnExcluir.addActionListener(e -> excluirDisciplina());
-        btnVoltar.addActionListener(e -> voltar());
+        btnVoltar.addActionListener(e -> {
+            dispose();
+            new TelaPrincipal(usuarioLogado).setVisible(true);
+        });
 
         tabelaDisciplinas.getSelectionModel().addListSelectionListener(e -> {
             boolean selecionado = tabelaDisciplinas.getSelectedRow() != -1;
@@ -98,7 +112,7 @@ public class TelaCadastroDisciplina extends JFrame {
 
     private void carregarDisciplinas() {
         try {
-            List<Disciplina> disciplinas = controller.listarDisciplinas();
+            List<Disciplina> disciplinas = controller.listarTodos();
             tabelaModel.setRowCount(0);
             for (Disciplina d : disciplinas) {
                 tabelaModel.addRow(new Object[]{d.getId(), d.getNome()});
@@ -115,7 +129,9 @@ public class TelaCadastroDisciplina extends JFrame {
             return;
         }
         try {
-            controller.adicionarDisciplina(nome);
+            Disciplina d = new Disciplina();
+            d.setNome(nome);
+            controller.salvar(d);
             carregarDisciplinas();
             tfNome.setText("");
             JOptionPane.showMessageDialog(this, "Disciplina cadastrada com sucesso.");
@@ -134,7 +150,10 @@ public class TelaCadastroDisciplina extends JFrame {
             return;
         }
         try {
-            controller.atualizarDisciplina(id, nome);
+            Disciplina d = new Disciplina();
+            d.setId(id);
+            d.setNome(nome);
+            controller.salvar(d);
             carregarDisciplinas();
             tfNome.setText("");
             tabelaDisciplinas.clearSelection();
@@ -153,7 +172,7 @@ public class TelaCadastroDisciplina extends JFrame {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         try {
-            controller.removerDisciplina(id);
+            controller.excluir(id);
             carregarDisciplinas();
             tfNome.setText("");
             tabelaDisciplinas.clearSelection();
@@ -161,10 +180,5 @@ public class TelaCadastroDisciplina extends JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao excluir disciplina: " + e.getMessage());
         }
-    }
-
-    private void voltar() {
-        dispose();
-        new TelaPrincipal(usuarioLogado).setVisible(true);
     }
 }

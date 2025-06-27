@@ -87,26 +87,34 @@ public class MatriculaDAO {
         String sql = "SELECT * FROM matricula";
         List<Matricula> lista = new ArrayList<>();
 
-        try (Connection conn = Conexao.getConexao(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (
+            Connection conn = Conexao.getConexao();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery()
+        ) {
+            AlunoDAO alunoDAO = new AlunoDAO(conn);
+            TurmaDAO turmaDAO = new TurmaDAO();
+
             while (rs.next()) {
-                Matricula matricula = new Matricula();
-                matricula.setId(rs.getInt("id"));
+                Matricula m = new Matricula();
+                m.setId(rs.getInt("id"));
+                m.setDataMatricula(rs.getDate("data_matricula").toLocalDate());
+                m.setStatus(rs.getString("status"));
 
-                Aluno aluno = new Aluno();
-                aluno.setId(rs.getInt("aluno_id"));
-                matricula.setAluno(aluno);
+                int alunoId = rs.getInt("aluno_id");
+                int turmaId = rs.getInt("turma_id");
 
-                Turma turma = new Turma();
-                turma.setId(rs.getInt("turma_id"));
-                matricula.setTurma(turma);
+                Aluno aluno = alunoDAO.buscarPorId(alunoId);
+                Turma turma = turmaDAO.buscarPorId(turmaId);
 
-                matricula.setDataMatricula(rs.getDate("data_matricula").toLocalDate());
-                matricula.setStatus(rs.getString("status"));
+                m.setAluno(aluno);
+                m.setTurma(turma);
 
-                lista.add(matricula);
+                lista.add(m);
             }
         }
 
         return lista;
     }
+
 }

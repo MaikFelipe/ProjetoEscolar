@@ -8,8 +8,10 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-import model.dao.AlunoDAO;
 import model.Aluno;
+import model.dao.AlunoDAO;
+import model.util.Conexao;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -17,22 +19,26 @@ public class AlunoController {
     private AlunoDAO alunoDAO;
 
     public AlunoController() {
-        this.alunoDAO = new AlunoDAO();
+        try {
+            this.alunoDAO = new AlunoDAO(Conexao.getConexao());
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao obter conexão no AlunoController: " + e.getMessage(), e);
+        }
     }
 
-    public void cadastrarAluno(Aluno aluno) throws SQLException {
-        alunoDAO.inserir(aluno);
+    public void salvarAluno(Aluno aluno) throws SQLException {
+        if (aluno.getId() == 0) {
+            alunoDAO.inserir(aluno);
+        } else {
+            alunoDAO.atualizar(aluno);
+        }
     }
 
-    public void atualizarAluno(Aluno aluno) throws SQLException {
-        alunoDAO.atualizar(aluno);
+    public void deletarAluno(int id) throws SQLException {
+        alunoDAO.excluir(id);
     }
 
-    public void excluirAluno(int id) throws SQLException {
-        alunoDAO.deletar(id);
-    }
-
-    public Aluno buscarAlunoPorId(int id) throws SQLException {
+    public Aluno buscarAluno(int id) throws SQLException {
         return alunoDAO.buscarPorId(id);
     }
 

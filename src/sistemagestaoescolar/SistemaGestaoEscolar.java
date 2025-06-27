@@ -4,6 +4,7 @@
  */
 package sistemagestaoescolar;
 
+import model.Municipio;
 import model.Usuario;
 import model.controller.UsuarioController;
 
@@ -17,18 +18,15 @@ public class SistemaGestaoEscolar {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Usuario u = new Usuario();
-        u.setNomeCompleto("Administrador");
-        u.setCpf("00000000000");
-        u.setEmail("admin@escola.com");
-        u.setTelefone("000000000");
-        u.setCargo("Administrador");
-        u.setLogin("admin");
-        u.setSenha("1234");
-        u.setNivelAcesso("admin");
+        Municipio municipio = new Municipio();
+        municipio.setId(1);
+        municipio.setNome("Santa Luzia");
+        municipio.setEstado("MG");
+        municipio.setSecretarioEducacao("Maria da Silva");
 
-        UsuarioController controller = new UsuarioController();
-        String resultado = controller.cadastrarUsuario(u);
-        System.out.println(resultado);
+        System.out.println("ID: " + municipio.getId());
+        System.out.println("Nome: " + municipio.getNome());
+        System.out.println("Estado: " + municipio.getEstado());
+        System.out.println("Secretário de Educação: " + municipio.getSecretarioEducacao());
     }
 }

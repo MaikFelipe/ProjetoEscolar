@@ -5,7 +5,8 @@ import model.dao.AlunoDAO;
 import model.Aluno;
 import model.Frequencia;
 import model.Turma;
-
+import java.sql.Connection;
+import model.util.Conexao;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -20,39 +21,37 @@ public class TelaVisualizarFrequenciaAluno extends JFrame {
     private JButton btnBuscar;
 
     public TelaVisualizarFrequenciaAluno() {
-        setTitle("Visualizar Frequência dos Alunos");
-        setSize(800, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout());
+    setTitle("Visualizar Frequência dos Alunos");
+    setSize(800, 400);
+    setLocationRelativeTo(null);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    setLayout(new BorderLayout());
 
-        // Painel do topo com combo de alunos + botão
-        JPanel painelTopo = new JPanel();
+    JPanel painelTopo = new JPanel();
 
-        try {
-            AlunoDAO alunoDAO = new AlunoDAO();
-            List<Aluno> listaAlunos = alunoDAO.listarTodos();
-            comboAlunos = new JComboBox<>(listaAlunos.toArray(new Aluno[0]));
-        } catch (Exception e) {
-            e.printStackTrace();
-            comboAlunos = new JComboBox<>();
-            JOptionPane.showMessageDialog(this, "Erro ao carregar alunos: " + e.getMessage());
-        }
-
-        btnBuscar = new JButton("Buscar Frequência");
-        painelTopo.add(new JLabel("Aluno:"));
-        painelTopo.add(comboAlunos);
-        painelTopo.add(btnBuscar);
-        add(painelTopo, BorderLayout.NORTH);
-
-        // Tabela de frequências
-        modeloTabela = new DefaultTableModel(new String[]{"Data", "Turma", "Presença", "Faltas Acumuladas"}, 0);
-        tabela = new JTable(modeloTabela);
-        add(new JScrollPane(tabela), BorderLayout.CENTER);
-
-        // Ação do botão
-        btnBuscar.addActionListener(e -> carregarFrequencias());
+    try {
+        Connection conn = model.util.Conexao.getConexao();
+        AlunoDAO alunoDAO = new AlunoDAO(conn);
+        List<Aluno> listaAlunos = alunoDAO.listarTodos();
+        comboAlunos = new JComboBox<>(listaAlunos.toArray(new Aluno[0]));
+    } catch (Exception e) {
+        e.printStackTrace();
+        comboAlunos = new JComboBox<>();
+        JOptionPane.showMessageDialog(this, "Erro ao carregar alunos: " + e.getMessage());
     }
+
+    btnBuscar = new JButton("Buscar Frequência");
+    painelTopo.add(new JLabel("Aluno:"));
+    painelTopo.add(comboAlunos);
+    painelTopo.add(btnBuscar);
+    add(painelTopo, BorderLayout.NORTH);
+
+    modeloTabela = new DefaultTableModel(new String[]{"Data", "Turma", "Presença", "Faltas Acumuladas"}, 0);
+    tabela = new JTable(modeloTabela);
+    add(new JScrollPane(tabela), BorderLayout.CENTER);
+
+    btnBuscar.addActionListener(e -> carregarFrequencias());
+}
 
     private void carregarFrequencias() {
         modeloTabela.setRowCount(0);

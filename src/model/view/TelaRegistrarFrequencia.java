@@ -1,20 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model.view;
 
-/**
- *
- * @author LASEDi 1781
- */
 import model.*;
 import model.controller.FrequenciaController;
 import model.dao.AlunoDAO;
 import model.dao.TurmaDAO;
+import model.util.Conexao;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -24,9 +19,20 @@ public class TelaRegistrarFrequencia extends JFrame {
     private JTable tabelaAlunos;
     private JButton btnRegistrar;
     private FrequenciaController controller;
+    private AlunoDAO alunoDAO;  // DAO inicializado com conexão
 
     public TelaRegistrarFrequencia(Usuario usuarioLogado) {
         controller = new FrequenciaController();
+
+        try {
+            Connection conn = Conexao.getConexao();
+            alunoDAO = new AlunoDAO(conn);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao conectar com o banco: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
+
         setTitle("Registrar Frequência");
         setSize(800, 600);
         setLocationRelativeTo(null);
@@ -72,11 +78,12 @@ public class TelaRegistrarFrequencia extends JFrame {
         try {
             TurmaDAO turmaDAO = new TurmaDAO();
             List<Turma> turmas = turmaDAO.listarTodas();
+            comboTurmas.removeAllItems();
             for (Turma t : turmas) {
                 comboTurmas.addItem(t);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar turmas: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Erro ao carregar turmas: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -87,13 +94,13 @@ public class TelaRegistrarFrequencia extends JFrame {
         Turma turmaSelecionada = (Turma) comboTurmas.getSelectedItem();
         if (turmaSelecionada != null) {
             try {
-                AlunoDAO alunoDAO = new AlunoDAO();
-                List<Aluno> alunos = alunoDAO.listarTodos(); // opcional: filtrar por turma
+                // Aqui você pode criar método para filtrar alunos da turma, se quiser
+                List<Aluno> alunos = alunoDAO.listarTodos();
                 for (Aluno aluno : alunos) {
                     model.addRow(new Object[]{aluno.getId(), aluno.getNomeCompleto(), Boolean.TRUE});
                 }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Erro ao carregar alunos: " + e.getMessage());
+                JOptionPane.showMessageDialog(this, "Erro ao carregar alunos: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -101,7 +108,7 @@ public class TelaRegistrarFrequencia extends JFrame {
     private void registrarFrequencia() {
         Turma turma = (Turma) comboTurmas.getSelectedItem();
         if (turma == null) {
-            JOptionPane.showMessageDialog(this, "Selecione uma turma.");
+            JOptionPane.showMessageDialog(this, "Selecione uma turma.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -121,7 +128,7 @@ public class TelaRegistrarFrequencia extends JFrame {
             f.setTurma(turma);
             f.setData(dataHoje);
             f.setPresente(presente);
-            f.setTotalFaltasAcumuladas(presente ? 0 : 1); // básico, pode ser melhorado
+            f.setTotalFaltasAcumuladas(presente ? 0 : 1); // simples lógica, pode melhorar
 
             String msg = controller.cadastrarFrequencia(f);
             System.out.println(msg);

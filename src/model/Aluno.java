@@ -104,9 +104,10 @@ public class Aluno {
     public String getTelefoneResponsavel(){
         return telefoneResponsavel;
     }
-    public void setTelefoneresponsavel(String telefoneResponsavel) {
+    public void setTelefoneResponsavel(String telefoneResponsavel) {
         this.telefoneResponsavel = telefoneResponsavel;
     }
+
     
     @Override
     public String toString() {

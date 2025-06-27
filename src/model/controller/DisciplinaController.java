@@ -10,32 +10,34 @@ package model.controller;
  */
 import model.dao.DisciplinaDAO;
 import model.Disciplina;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 public class DisciplinaController {
-    private DisciplinaDAO disciplinaDAO;
+    private DisciplinaDAO dao;
 
-    public DisciplinaController() {
-        this.disciplinaDAO = new DisciplinaDAO();
+    public DisciplinaController(Connection connection) {
+        this.dao = new DisciplinaDAO(connection);
     }
 
-    public void adicionarDisciplina(String nome) throws SQLException {
-        Disciplina d = new Disciplina();
-        d.setNome(nome);
-        disciplinaDAO.inserir(d);
+    public void salvar(Disciplina d) throws SQLException {
+        if (d.getId() == 0) {
+            dao.inserir(d);
+        } else {
+            dao.atualizar(d);
+        }
     }
 
-    public List<Disciplina> listarDisciplinas() throws SQLException {
-        return disciplinaDAO.listar();
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public void atualizarDisciplina(int id, String novoNome) throws SQLException {
-        Disciplina d = new Disciplina(id, novoNome);
-        disciplinaDAO.atualizar(d);
+    public Disciplina buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public void removerDisciplina(int id) throws SQLException {
-        disciplinaDAO.deletar(id);
+    public List<Disciplina> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

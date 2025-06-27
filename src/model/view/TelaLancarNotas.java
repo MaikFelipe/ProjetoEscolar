@@ -13,10 +13,11 @@ import model.controller.NotaController;
 import model.dao.AlunoDAO;
 import model.dao.DisciplinaDAO;
 import model.dao.TurmaDAO;
+import model.util.Conexao;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.sql.Connection;
 import java.util.List;
 
 public class TelaLancarNotas extends JFrame {
@@ -51,7 +52,6 @@ public class TelaLancarNotas extends JFrame {
         cbTurma = new JComboBox<>();
         cbBimestre = new JComboBox<>(new Integer[]{1, 2, 3, 4});
         tfNota = new JTextField(5);
-
         btnSalvar = new JButton("Salvar Nota");
         btnVoltar = new JButton("Voltar");
 
@@ -89,29 +89,24 @@ public class TelaLancarNotas extends JFrame {
 
         add(panel);
 
-        btnSalvar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                salvarNota();
-            }
-        });
-
+        btnSalvar.addActionListener(e -> salvarNota());
         btnVoltar.addActionListener(e -> dispose());
     }
 
     private void carregarDados() {
-        try {
-            List<Aluno> alunos = new AlunoDAO().listarTodos();
+        try (Connection conn = Conexao.getConexao()) {
+            AlunoDAO alunoDAO = new AlunoDAO(conn);
+            DisciplinaDAO disciplinaDAO = new DisciplinaDAO(conn);
+            TurmaDAO turmaDAO = new TurmaDAO();
+
             cbAluno.removeAllItems();
-            for (Aluno a : alunos) cbAluno.addItem(a);
+            for (Aluno a : alunoDAO.listarTodos()) cbAluno.addItem(a);
 
-            List<Disciplina> disciplinas = new DisciplinaDAO().listar();
             cbDisciplina.removeAllItems();
-            for (Disciplina d : disciplinas) cbDisciplina.addItem(d);
+            for (Disciplina d : disciplinaDAO.listarTodos()) cbDisciplina.addItem(d);
 
-            List<Turma> turmas = new TurmaDAO().listarTodas();
             cbTurma.removeAllItems();
-            for (Turma t : turmas) cbTurma.addItem(t);
+            for (Turma t : turmaDAO.listarTodas()) cbTurma.addItem(t);
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + ex.getMessage());

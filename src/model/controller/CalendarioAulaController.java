@@ -10,45 +10,34 @@ package model.controller;
  */
 import model.dao.CalendarioAulaDAO;
 import model.CalendarioAula;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 public class CalendarioAulaController {
-    private CalendarioAulaDAO caDAO = new CalendarioAulaDAO();
+    private CalendarioAulaDAO dao;
 
-    public void cadastrar(CalendarioAula ca) {
-        try {
-            caDAO.inserir(ca);
-            System.out.println("Calendário de aula cadastrado com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao cadastrar calendário: " + e.getMessage());
+    public CalendarioAulaController(Connection connection) {
+        this.dao = new CalendarioAulaDAO(connection);
+    }
+
+    public void salvar(CalendarioAula c) throws SQLException {
+        if (c.getId() == 0) {
+            dao.inserir(c);
+        } else {
+            dao.atualizar(c);
         }
     }
 
-    public List<CalendarioAula> listarTodos() {
-        try {
-            return caDAO.listar();
-        } catch (SQLException e) {
-            System.err.println("Erro ao listar calendários: " + e.getMessage());
-            return null;
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public void atualizar(CalendarioAula ca) {
-        try {
-            caDAO.atualizar(ca);
-            System.out.println("Calendário de aula atualizado com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao atualizar calendário: " + e.getMessage());
-        }
+    public CalendarioAula buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public void excluir(int id) {
-        try {
-            caDAO.deletar(id);
-            System.out.println("Calendário de aula excluido com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao excluir calendário: " + e.getMessage());
-        }
+    public List<CalendarioAula> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

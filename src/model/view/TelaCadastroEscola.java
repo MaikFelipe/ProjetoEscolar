@@ -11,6 +11,8 @@ package model.view;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import model.Escola;
 import model.Municipio;
@@ -18,6 +20,7 @@ import model.Usuario;
 import model.controller.EscolaController;
 import model.dao.MunicipioDAO;
 import model.dao.UsuarioDao;
+import model.util.Conexao;
 
 public class TelaCadastroEscola extends JFrame {
 
@@ -26,13 +29,23 @@ public class TelaCadastroEscola extends JFrame {
     private JComboBox<Usuario> cbDiretor;
     private JButton btnCadastrar, btnVoltar;
     private EscolaController escolaController;
+    private Connection connection;
 
     public TelaCadastroEscola() {
-        escolaController = new EscolaController();
+        try {
+            connection = Conexao.getConexao();
+            escolaController = new EscolaController(connection);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            dispose();
+            return;
+        }
+
         configurarJanela();
         criarComponentes();
         carregarMunicipios();
         carregarDiretores();
+        setVisible(true);
     }
 
     private void configurarJanela() {
@@ -97,12 +110,14 @@ public class TelaCadastroEscola extends JFrame {
 
     private void carregarMunicipios() {
         try {
-            List<Municipio> municipios = new MunicipioDAO().listarTodos();
+            MunicipioDAO municipioDAO = new MunicipioDAO();
+            List<Municipio> municipios = municipioDAO.listarTodos();
+            cbMunicipio.removeAllItems();
             for (Municipio m : municipios) {
                 cbMunicipio.addItem(m);
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar municípios: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar municípios: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -110,11 +125,12 @@ public class TelaCadastroEscola extends JFrame {
         try {
             UsuarioDao dao = new UsuarioDao();
             List<Usuario> diretores = dao.listarPorNivelAcesso("Diretor");
+            cbDiretor.removeAllItems();
             for (Usuario u : diretores) {
                 cbDiretor.addItem(u);
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar diretores: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar diretores: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -135,17 +151,18 @@ public class TelaCadastroEscola extends JFrame {
 
         Escola escola = new Escola();
         escola.setNome(nome);
-        escola.setEnderecoCompleto(endereco);
-        escola.setBairro(bairro);
+        escola.setEnderecoCompleto(endereco + " - " + bairro);
         escola.setTelefone(telefone);
         escola.setEmail(email);
         escola.setMunicipio(municipio);
         escola.setUsuarioDiretor(diretor);
 
-        String msg = escolaController.cadastrarEscola(escola);
-        JOptionPane.showMessageDialog(this, msg);
-        if (msg.contains("sucesso")) {
+        try {
+            escolaController.salvar(escola);
+            JOptionPane.showMessageDialog(this, "Escola cadastrada com sucesso.");
             dispose();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao cadastrar escola: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -3,10 +3,10 @@ package model.view;
 import model.Aluno;
 import model.Turma;
 import model.Matricula;
+import model.Usuario;
 import model.controller.AlunoController;
 import model.controller.TurmaController;
 import model.controller.MatriculaController;
-import model.Usuario;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -56,41 +56,35 @@ public class TelaMatriculaAluno extends JFrame {
     private void criarComponentes() {
         JPanel painel = new JPanel(new BorderLayout(10, 10));
 
-        // Painel formulário
         JPanel painelFormulario = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Aluno
         gbc.gridx = 0; gbc.gridy = 0;
         painelFormulario.add(new JLabel("Aluno:"), gbc);
         cbAlunos = new JComboBox<>();
         gbc.gridx = 1;
         painelFormulario.add(cbAlunos, gbc);
 
-        // Turma
         gbc.gridx = 0; gbc.gridy = 1;
         painelFormulario.add(new JLabel("Turma:"), gbc);
         cbTurmas = new JComboBox<>();
         gbc.gridx = 1;
         painelFormulario.add(cbTurmas, gbc);
 
-        // Data Matrícula
         gbc.gridx = 0; gbc.gridy = 2;
         painelFormulario.add(new JLabel("Data Matrícula (yyyy-MM-dd):"), gbc);
         tfDataMatricula = new JTextField(15);
         gbc.gridx = 1;
         painelFormulario.add(tfDataMatricula, gbc);
 
-        // Status
         gbc.gridx = 0; gbc.gridy = 3;
         painelFormulario.add(new JLabel("Status:"), gbc);
-        cbStatus = new JComboBox<>(new String[] {"Ativo", "Inativo", "Cancelado"});
+        cbStatus = new JComboBox<>(new String[]{"Ativo", "Inativo", "Cancelado"});
         gbc.gridx = 1;
         painelFormulario.add(cbStatus, gbc);
 
-        // Botões
         JPanel painelBotoes = new JPanel();
         btnSalvar = new JButton("Salvar");
         btnVoltar = new JButton("Voltar");
@@ -100,12 +94,13 @@ public class TelaMatriculaAluno extends JFrame {
         gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
         painelFormulario.add(painelBotoes, gbc);
 
-        // Tabela de matrículas
-        tabelaModel = new DefaultTableModel(new String[] {
+        tabelaModel = new DefaultTableModel(new String[]{
                 "ID", "Aluno", "Turma", "Data Matrícula", "Status"
         }, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
         };
         tabelaMatriculas = new JTable(tabelaModel);
         JScrollPane spTabela = new JScrollPane(tabelaMatriculas);
@@ -115,7 +110,6 @@ public class TelaMatriculaAluno extends JFrame {
 
         add(painel);
 
-        // Listeners
         btnSalvar.addActionListener(e -> salvarMatricula());
         btnVoltar.addActionListener(e -> {
             dispose();
@@ -125,40 +119,31 @@ public class TelaMatriculaAluno extends JFrame {
 
     private void carregarDados() {
         try {
-            List<Aluno> alunos = alunoController.listarAlunos();
             cbAlunos.removeAllItems();
-            if (alunos != null) {
-                for (Aluno a : alunos) {
-                    cbAlunos.addItem(a);
-                }
+            for (Aluno a : alunoController.listarAlunos()) {
+                cbAlunos.addItem(a);
             }
 
-            List<Turma> turmas = turmaController.listarTurmas();
             cbTurmas.removeAllItems();
-            if (turmas != null) {
-                for (Turma t : turmas) {
-                    cbTurmas.addItem(t);
-                }
+            for (Turma t : turmaController.listarTurmas()) {
+                cbTurmas.addItem(t);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar alunos ou turmas: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void carregarMatriculas() {
         try {
-            List<Matricula> matriculas = matriculaController.listarMatriculas();
             tabelaModel.setRowCount(0);
-            if (matriculas != null) {
-                for (Matricula m : matriculas) {
-                    tabelaModel.addRow(new Object[] {
-                            m.getId(),
-                            m.getAluno().getNomeCompleto(),
-                            m.getTurma().getNome(),
-                            m.getDataMatricula(),
-                            m.getStatus()
-                    });
-                }
+            for (Matricula m : matriculaController.listarMatriculas()) {
+                tabelaModel.addRow(new Object[]{
+                        m.getId(),
+                        m.getAluno().getNomeCompleto(),
+                        m.getTurma().getNome(),
+                        m.getDataMatricula(),
+                        m.getStatus()
+                });
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar matrículas: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
@@ -201,11 +186,10 @@ public class TelaMatriculaAluno extends JFrame {
     private void limparCampos() {
         tfDataMatricula.setText("");
         cbStatus.setSelectedIndex(0);
-        if (cbAlunos.getItemCount() > 0) cbAlunos.setSelectedIndex(0);
-        if (cbTurmas.getItemCount() > 0) cbTurmas.setSelectedIndex(0);
+        cbAlunos.setSelectedIndex(0);
+        cbTurmas.setSelectedIndex(0);
     }
 
-    // Para melhorar a exibição dos objetos no JComboBox
     static {
         UIManager.put("ComboBox.renderer", new DefaultListCellRenderer() {
             @Override

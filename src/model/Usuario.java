@@ -96,4 +96,8 @@ public class Usuario {
     public void setNivelAcesso(String nivelAcesso) {
         this.nivelAcesso = nivelAcesso;
     }
+    @Override
+        public String toString() {
+            return nomeCompleto;
+        }
 }

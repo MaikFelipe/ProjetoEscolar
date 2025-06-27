@@ -17,8 +17,8 @@ public class TelaPrincipal extends JFrame {
     }
 
     private void configurarJanela() {
-        setUndecorated(true); // Remove barra de título e bordas
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Tela cheia
+        setUndecorated(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
     }
@@ -55,11 +55,6 @@ public class TelaPrincipal extends JFrame {
         itemEscola.addActionListener(e -> new TelaCadastroEscola().setVisible(true));
 
         if (usuarioLogado.getNivelAcesso() != null &&
-            (usuarioLogado.getNivelAcesso().equalsIgnoreCase("SecretarioEducacao") ||
-             usuarioLogado.getNivelAcesso().equalsIgnoreCase("SuperUsuario"))) {
-        }
-
-        if (usuarioLogado.getNivelAcesso() != null &&
             !usuarioLogado.getNivelAcesso().equalsIgnoreCase("Professor")) {
             menuCadastro.add(itemAluno);
             menuCadastro.add(itemProfessor);
@@ -91,7 +86,7 @@ public class TelaPrincipal extends JFrame {
         gbc.weightx = 1;
         gbc.weighty = 1;
 
-        Color corPadrao = new Color(173, 216, 230); // Azul claro
+        Color corPadrao = new Color(173, 216, 230);
 
         int col = 0;
         int row = 0;
@@ -116,6 +111,9 @@ public class TelaPrincipal extends JFrame {
             col = 0; row++;
             painelCentral.add(criarCard("Visualizar Frequência", corPadrao, e -> new TelaVisualizarFrequenciaAluno().setVisible(true)), setGbcCard(gbc, col++, row));
             painelCentral.add(criarCard("Cadastro de Escola", corPadrao, e -> new TelaCadastroEscola().setVisible(true)), setGbcCard(gbc, col++, row));
+
+            // Botão Gerenciar Usuários sempre aparece para teste
+            painelCentral.add(criarCard("Gerenciar Usuários", corPadrao, e -> new TelaGerenciarUsuarios(usuarioLogado).setVisible(true)), setGbcCard(gbc, col++, row));
         }
 
         painelCentral.add(criarCard("Sair do Sistema", corPadrao, e -> System.exit(0)), setGbcCard(gbc, 0, ++row));

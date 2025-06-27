@@ -12,10 +12,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
+
 import model.*;
 import model.controller.TransferenciaController;
 import model.dao.AlunoDAO;
 import model.dao.EscolaDAO;
+import model.util.Conexao;
+
+import java.sql.Connection;
 
 public class TelaTransferenciaAluno extends JFrame {
 
@@ -89,8 +93,9 @@ public class TelaTransferenciaAluno extends JFrame {
         painel.add(chkNotasMigradas, gbc);
 
         y++;
-        gbc.gridy = y;
         gbc.gridwidth = 1;
+        gbc.gridy = y;
+        gbc.gridx = 0;
         painel.add(btnSalvar, gbc);
 
         gbc.gridx = 1;
@@ -104,14 +109,16 @@ public class TelaTransferenciaAluno extends JFrame {
 
     private void carregarDados() {
         try {
-            AlunoDAO alunoDAO = new AlunoDAO();
-            EscolaDAO escolaDAO = new EscolaDAO();
+            Connection conn = Conexao.getConexao();
+
+            AlunoDAO alunoDAO = new AlunoDAO(conn);
+            EscolaDAO escolaDAO = new EscolaDAO(conn);
 
             List<Aluno> alunos = alunoDAO.listarTodos();
             comboAluno.removeAllItems();
             for (Aluno a : alunos) comboAluno.addItem(a);
 
-            List<Escola> escolas = escolaDAO.listarTodas();
+            List<Escola> escolas = escolaDAO.listarTodos();
             comboOrigem.removeAllItems();
             comboDestino.removeAllItems();
             for (Escola e : escolas) {
@@ -119,7 +126,7 @@ public class TelaTransferenciaAluno extends JFrame {
                 comboDestino.addItem(e);
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -132,12 +139,12 @@ public class TelaTransferenciaAluno extends JFrame {
             boolean notasMigradas = chkNotasMigradas.isSelected();
 
             if (aluno == null || origem == null || destino == null) {
-                JOptionPane.showMessageDialog(this, "Selecione todas as opções.");
+                JOptionPane.showMessageDialog(this, "Selecione todas as opções.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             if (origem.getId() == destino.getId()) {
-                JOptionPane.showMessageDialog(this, "A escola de origem e destino devem ser diferentes.");
+                JOptionPane.showMessageDialog(this, "A escola de origem e destino devem ser diferentes.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -154,7 +161,7 @@ public class TelaTransferenciaAluno extends JFrame {
             dispose();
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar transferência: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Erro ao salvar transferência: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

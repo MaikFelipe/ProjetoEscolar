@@ -5,6 +5,7 @@ import java.awt.*;
 import model.Usuario;
 import model.controller.UsuarioController;
 import model.util.Criptografia;
+import java.sql.SQLException;
 
 public class TelaCadastroUsuario extends JFrame {
 
@@ -14,16 +15,23 @@ public class TelaCadastroUsuario extends JFrame {
     private JButton btnCadastrar, btnVoltar;
     private UsuarioController usuarioController;
     private Usuario usuarioLogado;
+    private Usuario usuarioEditando;
 
-    public TelaCadastroUsuario(Usuario usuario) {
-        this.usuarioLogado = usuario;
+    public TelaCadastroUsuario(Usuario usuarioLogado) {
+        this(usuarioLogado, null);
+    }
+
+    public TelaCadastroUsuario(Usuario usuarioLogado, Usuario usuarioEditando) {
+        this.usuarioLogado = usuarioLogado;
+        this.usuarioEditando = usuarioEditando;
         usuarioController = new UsuarioController();
         configurarJanela();
         criarComponentes();
+        if (usuarioEditando != null) preencherCampos();
     }
 
     private void configurarJanela() {
-        setTitle("Cadastro de Usuário");
+        setTitle(usuarioEditando == null ? "Cadastro de Usuário" : "Editar Usuário");
         setSize(500, 450);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -62,14 +70,11 @@ public class TelaCadastroUsuario extends JFrame {
             "SecretarioEducacao", "SuperUsuario", "Diretor", "SecretarioEscolar", "Professor"
         });
 
-        btnCadastrar = new JButton("Cadastrar");
+        btnCadastrar = new JButton(usuarioEditando == null ? "Cadastrar" : "Salvar");
         btnVoltar = new JButton("Voltar");
 
-        btnCadastrar.addActionListener(e -> cadastrarUsuario());
-        btnVoltar.addActionListener(e -> {
-            dispose();
-            new TelaPrincipal(usuarioLogado).setVisible(true);
-        });
+        btnCadastrar.addActionListener(e -> salvarUsuario());
+        btnVoltar.addActionListener(e -> dispose());
 
         int y = 0;
         gbc.gridx = 0; gbc.gridy = y; painel.add(lbNome, gbc);
@@ -106,7 +111,17 @@ public class TelaCadastroUsuario extends JFrame {
         add(painel, BorderLayout.CENTER);
     }
 
-    private void cadastrarUsuario() {
+    private void preencherCampos() {
+        tfNome.setText(usuarioEditando.getNomeCompleto());
+        tfCpf.setText(usuarioEditando.getCpf());
+        tfEmail.setText(usuarioEditando.getEmail());
+        tfTelefone.setText(usuarioEditando.getTelefone());
+        tfCargo.setText(usuarioEditando.getCargo());
+        tfLogin.setText(usuarioEditando.getLogin());
+        cbNivelAcesso.setSelectedItem(usuarioEditando.getNivelAcesso());
+    }
+
+    private void salvarUsuario() {
         String nome = tfNome.getText().trim();
         String cpf = tfCpf.getText().trim();
         String email = tfEmail.getText().trim();
@@ -117,28 +132,49 @@ public class TelaCadastroUsuario extends JFrame {
         String nivelAcesso = (String) cbNivelAcesso.getSelectedItem();
 
         if (nome.isEmpty() || cpf.isEmpty() || email.isEmpty() || telefone.isEmpty() ||
-            cargo.isEmpty() || login.isEmpty() || senha.isEmpty()) {
+            cargo.isEmpty() || login.isEmpty() || (usuarioEditando == null && senha.isEmpty())) {
             JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String senhaCriptografada = Criptografia.criptografar(senha);
+        if (usuarioEditando == null) {
+            String senhaCriptografada = Criptografia.criptografar(senha);
+            Usuario novo = new Usuario();
+            novo.setNomeCompleto(nome);
+            novo.setCpf(cpf);
+            novo.setEmail(email);
+            novo.setTelefone(telefone);
+            novo.setCargo(cargo);
+            novo.setLogin(login);
+            novo.setSenha(senhaCriptografada);
+            novo.setNivelAcesso(nivelAcesso);
 
-        Usuario usuario = new Usuario();
-        usuario.setNomeCompleto(nome);
-        usuario.setCpf(cpf);
-        usuario.setEmail(email);
-        usuario.setTelefone(telefone);
-        usuario.setCargo(cargo);
-        usuario.setLogin(login);
-        usuario.setSenha(senhaCriptografada);
-        usuario.setNivelAcesso(nivelAcesso);
+            try {
+                usuarioController.cadastrarUsuario(novo);
+                JOptionPane.showMessageDialog(this, "Usuário cadastrado com sucesso!");
+                dispose();
+            } catch (SQLException | IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            usuarioEditando.setNomeCompleto(nome);
+            usuarioEditando.setCpf(cpf);
+            usuarioEditando.setEmail(email);
+            usuarioEditando.setTelefone(telefone);
+            usuarioEditando.setCargo(cargo);
+            usuarioEditando.setLogin(login);
+            if (!senha.isEmpty()) {
+                usuarioEditando.setSenha(Criptografia.criptografar(senha));
+            }
+            usuarioEditando.setNivelAcesso(nivelAcesso);
 
-        String resultado = usuarioController.cadastrarUsuario(usuario);
-        JOptionPane.showMessageDialog(this, resultado);
-        if (resultado.contains("sucesso")) {
-            dispose();
-            new TelaPrincipal(usuarioLogado).setVisible(true);
+            try {
+                usuarioController.atualizarUsuario(usuarioEditando);
+                JOptionPane.showMessageDialog(this, "Usuário atualizado com sucesso!");
+                dispose();
+            } catch (SQLException | IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 }

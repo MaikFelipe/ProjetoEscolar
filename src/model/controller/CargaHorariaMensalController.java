@@ -8,48 +8,37 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+// CargaHorariaMensalController.java
 import model.dao.CargaHorariaMensalDAO;
 import model.CargaHorariaMensal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
 public class CargaHorariaMensalController {
+    private CargaHorariaMensalDAO dao;
 
-    private CargaHorariaMensalDAO chmDAO = new CargaHorariaMensalDAO();
+    public CargaHorariaMensalController(Connection connection) {
+        this.dao = new CargaHorariaMensalDAO(connection);
+    }
 
-    public void cadastrar(CargaHorariaMensal chm) {
-        try {
-            chmDAO.inserir(chm);
-            System.out.println("Carga horária mensal cadastrada com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao cadastrar carga horária: " + e.getMessage());
+    public void salvar(CargaHorariaMensal c) throws SQLException {
+        if (c.getId() == 0) {
+            dao.inserir(c);
+        } else {
+            dao.atualizar(c);
         }
     }
 
-    public List<CargaHorariaMensal> listarTodos() {
-        try {
-            return chmDAO.listar();
-        } catch (SQLException e) {
-            System.err.println("Erro ao listar cargas horárias: " + e.getMessage());
-            return null;
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public void atualizar(CargaHorariaMensal chm) {
-        try {
-            chmDAO.atualizar(chm);
-            System.out.println("Carga horária mensal atualizada com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao atualizar carga horária: " + e.getMessage());
-        }
+    public CargaHorariaMensal buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public void excluir(int id) {
-        try {
-            chmDAO.deletar(id);
-            System.out.println("Carga horária mensal excluída com sucesso.");
-        } catch (SQLException e) {
-            System.err.println("Erro ao excluir carga horária: " + e.getMessage());
-        }
+    public List<CargaHorariaMensal> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

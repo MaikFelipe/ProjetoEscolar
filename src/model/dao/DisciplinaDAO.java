@@ -4,64 +4,74 @@
  */
 package model.dao;
 
+import model.Disciplina;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import model.Disciplina;
-import model.util.Conexao;
 
-
-/**
- *
- * @author LASEDi 1781
- */
 public class DisciplinaDAO {
+    private Connection connection;
 
-    public void inserir(Disciplina disciplina) throws SQLException {
-        String sql = "INSERT INTO disciplina (nome) VALUES (?)";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, disciplina.getNome());
-            stmt.executeUpdate();
-        }
+    public DisciplinaDAO(Connection connection) {
+        this.connection = connection;
     }
 
-    public List<Disciplina> listar() throws SQLException {
-        List<Disciplina> lista = new ArrayList<>();
-        String sql = "SELECT * FROM disciplina";
+    public void inserir(Disciplina d) throws SQLException {
+        String sql = "INSERT INTO disciplina (nome) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, d.getNome());
+            stmt.executeUpdate();
 
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                Disciplina d = new Disciplina();
-                d.setId(rs.getInt("id"));
-                d.setNome(rs.getString("nome"));
-                lista.add(d);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) d.setId(rs.getInt(1));
             }
         }
-
-        return lista;
     }
 
-    public void atualizar(Disciplina disciplina) throws SQLException {
-        String sql = "UPDATE disciplina SET nome = ? WHERE id = ?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, disciplina.getNome());
-            stmt.setInt(2, disciplina.getId());
+    public void atualizar(Disciplina d) throws SQLException {
+        String sql = "UPDATE disciplina SET nome=? WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, d.getNome());
+            stmt.setInt(3, d.getId());
             stmt.executeUpdate();
         }
     }
 
-    public void deletar(int id) throws SQLException {
-        String sql = "DELETE FROM disciplina WHERE id = ?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+    public void excluir(int id) throws SQLException {
+        String sql = "DELETE FROM disciplina WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
+    }
+
+    public Disciplina buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM disciplina WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapearDisciplina(rs);
+            }
+        }
+        return null;
+    }
+
+    public List<Disciplina> listarTodos() throws SQLException {
+        String sql = "SELECT * FROM disciplina";
+        List<Disciplina> list = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapearDisciplina(rs));
+            }
+        }
+        return list;
+    }
+
+    private Disciplina mapearDisciplina(ResultSet rs) throws SQLException {
+        Disciplina d = new Disciplina();
+        d.setId(rs.getInt("id"));
+        d.setNome(rs.getString("nome"));
+        return d;
     }
 }

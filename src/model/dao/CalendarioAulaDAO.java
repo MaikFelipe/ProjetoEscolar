@@ -8,79 +8,105 @@ package model.dao;
  *
  * @author LASEDi 1781
  */
+import model.CalendarioAula;
+import model.Turma;
+import model.Disciplina;
+import model.Usuario;
 import java.sql.*;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import model.CalendarioAula;
-import model.Disciplina;
-import model.Turma;
-import model.Usuario;
-import model.util.Conexao;
 
 public class CalendarioAulaDAO {
-    
-    public void inserir(CalendarioAula ca) throws SQLException {
-        String sql = "INSERT INTO calendario_aula (turma_id, disciplina_id, professor_id, dia_semana, horario_inicio, horario_fim) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, ca.getTurma().getId());
-            stmt.setInt(2, ca.getDisciplina().getId());
-            stmt.setInt(3, ca.getProfessor().getId());
-            stmt.setString(4, ca.getDiaSemana());
-            stmt.setTime(5, Time.valueOf(ca.getHorarioInicio()));
-            stmt.setTime(6, Time.valueOf(ca.getHorarioFim()));
-            stmt.executeUpdate();
-        }
+    private Connection connection;
+
+    public CalendarioAulaDAO(Connection connection) {
+        this.connection = connection;
     }
 
-    public List<CalendarioAula> listar() throws SQLException {
-        List<CalendarioAula> lista = new ArrayList<>();
-        String sql = "SELECT * FROM calendario_aula";
-        try (Connection conn = Conexao.getConexao(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                CalendarioAula ca = new CalendarioAula();
-                ca.setId(rs.getInt("id"));
+    public void inserir(CalendarioAula c) throws SQLException {
+        String sql = "INSERT INTO calendario_aula (turma_id, disciplina_id, professor_id, dia_semana, horario_inicio, horario_fim) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, c.getTurma().getId());
+            stmt.setInt(2, c.getDisciplina().getId());
+            stmt.setInt(3, c.getProfessor().getId());
+            stmt.setString(4, c.getDiaSemana());
+            stmt.setTime(5, Time.valueOf(c.getHorarioInicio()));
+            stmt.setTime(6, Time.valueOf(c.getHorarioFim()));
+            stmt.executeUpdate();
 
-                Turma turma = new Turma();
-                turma.setId(rs.getInt("turma_id"));
-                ca.setTurma(turma);
-
-                Usuario professor = new Usuario();
-                professor.setId(rs.getInt("professor_id"));
-                ca.setProfessor(professor);
-
-                Disciplina d = new Disciplina();
-                ca.setId(rs.getInt("disciplina_id"));
-                ca.setDiaSemana(rs.getString("dia_semana"));
-                ca.setHorarioInicio(rs.getTime("horario_inicio").toLocalTime());
-                ca.setHorarioFim(rs.getTime("horario_fim").toLocalTime());
-
-
-                lista.add(ca);
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) c.setId(rs.getInt(1));
             }
         }
-        return lista;
     }
 
-    public void atualizar(CalendarioAula ca) throws SQLException {
+    public void atualizar(CalendarioAula c) throws SQLException {
         String sql = "UPDATE calendario_aula SET turma_id=?, disciplina_id=?, professor_id=?, dia_semana=?, horario_inicio=?, horario_fim=? WHERE id=?";
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, ca.getTurma().getId());
-            stmt.setInt(2, ca.getDisciplina().getId());
-            stmt.setInt(3, ca.getProfessor().getId());
-            stmt.setString(4, ca.getDiaSemana());
-            stmt.setTime(5, Time.valueOf(ca.getHorarioInicio()));
-            stmt.setTime(6, Time.valueOf(ca.getHorarioFim()));
-            stmt.setInt(7, ca.getId());
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, c.getTurma().getId());
+            stmt.setInt(2, c.getDisciplina().getId());
+            stmt.setInt(3, c.getProfessor().getId());
+            stmt.setString(4, c.getDiaSemana());
+            stmt.setTime(5, Time.valueOf(c.getHorarioInicio()));
+            stmt.setTime(6, Time.valueOf(c.getHorarioFim()));
+            stmt.setInt(7, c.getId());
             stmt.executeUpdate();
         }
     }
 
-    public void deletar(int id) throws SQLException {
+    public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM calendario_aula WHERE id=?";
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
+    }
+
+    public CalendarioAula buscarPorId(int id) throws SQLException {
+        String sql = "SELECT * FROM calendario_aula WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapearCalendarioAula(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<CalendarioAula> listarTodos() throws SQLException {
+        String sql = "SELECT * FROM calendario_aula";
+        List<CalendarioAula> list = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapearCalendarioAula(rs));
+            }
+        }
+        return list;
+    }
+
+    private CalendarioAula mapearCalendarioAula(ResultSet rs) throws SQLException {
+        CalendarioAula c = new CalendarioAula();
+        c.setId(rs.getInt("id"));
+        
+        Turma t = new Turma();
+        t.setId(rs.getInt("turma_id"));
+        c.setTurma(t);
+        
+        Disciplina d = new Disciplina();
+        d.setId(rs.getInt("disciplina_id"));
+        c.setDisciplina(d);
+        
+        Usuario u = new Usuario();
+        u.setId(rs.getInt("professor_id"));
+        c.setProfessor(u);
+        
+        c.setDiaSemana(rs.getString("dia_semana"));
+        c.setHorarioInicio(rs.getTime("horario_inicio").toLocalTime());
+        c.setHorarioFim(rs.getTime("horario_fim").toLocalTime());
+        return c;
     }
 }
