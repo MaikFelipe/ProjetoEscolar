@@ -1,5 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model.view;
 
+/**
+ *
+ * @author LASEDi 1781
+ */
 import model.Aluno;
 import model.Turma;
 import model.Matricula;

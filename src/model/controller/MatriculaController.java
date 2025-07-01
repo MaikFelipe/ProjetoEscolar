@@ -8,64 +8,33 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+import model.dao.MatriculaDAO;
+import model.Matricula;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import model.Matricula;
-import model.dao.MatriculaDAO;
 
 public class MatriculaController {
+    private MatriculaDAO dao;
 
-    private MatriculaDAO matriculaDAO;
-
-    public MatriculaController() {
-        this.matriculaDAO = new MatriculaDAO();
+    public MatriculaController(Connection connection) {
+        this.dao = new MatriculaDAO(connection);
     }
 
-    public String cadastrarMatricula(Matricula matricula) {
-        try {
-            matriculaDAO.inserir(matricula);
-            return "Matrícula cadastrada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao cadastrar matrícula: " + e.getMessage();
-        }
+    public void salvar(Matricula m) throws SQLException {
+        if (m.getId() == 0) dao.inserir(m);
+        else dao.atualizar(m);
     }
 
-    public String atualizarMatricula(Matricula matricula) {
-        try {
-            matriculaDAO.atualizar(matricula);
-            return "Matrícula atualizada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao atualizar matrícula: " + e.getMessage();
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public String excluirMatricula(int id) {
-        try {
-            matriculaDAO.excluir(id);
-            return "Matrícula excluída com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao excluir matrícula: " + e.getMessage();
-        }
+    public Matricula buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public Matricula buscarMatriculaPorId(int id) {
-        try {
-            return matriculaDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<Matricula> listarMatriculas() {
-        try {
-            return matriculaDAO.listarTodas();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<Matricula> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

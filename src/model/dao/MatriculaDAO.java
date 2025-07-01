@@ -9,112 +9,86 @@ package model.dao;
  * @author LASEDi 1781
  */
 import model.Matricula;
-import model.Aluno;
-import model.Turma;
-import model.util.Conexao;
-
+import model.Nota;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MatriculaDAO {
+    private Connection connection;
 
-    public void inserir(Matricula matricula) throws SQLException {
+    public MatriculaDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void inserir(Matricula m) throws SQLException {
         String sql = "INSERT INTO matricula (aluno_id, turma_id, data_matricula, status) VALUES (?, ?, ?, ?)";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, matricula.getAluno().getId());
-            stmt.setInt(2, matricula.getTurma().getId());
-            stmt.setDate(3, Date.valueOf(matricula.getDataMatricula()));
-            stmt.setString(4, matricula.getStatus());
-
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, m.getAluno().getId());
+            stmt.setInt(2, m.getTurma().getId());
+            stmt.setDate(3, Date.valueOf(m.getDataMatricula()));
+            stmt.setString(4, m.getStatus());
             stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) m.setId(rs.getInt(1));
+            }
         }
     }
 
-    public void atualizar(Matricula matricula) throws SQLException {
-        String sql = "UPDATE matricula SET aluno_id = ?, turma_id = ?, data_matricula = ?, status = ? WHERE id = ?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, matricula.getAluno().getId());
-            stmt.setInt(2, matricula.getTurma().getId());
-            stmt.setDate(3, Date.valueOf(matricula.getDataMatricula()));
-            stmt.setString(4, matricula.getStatus());
-            stmt.setInt(5, matricula.getId());
-
+    public void atualizar(Matricula m) throws SQLException {
+        String sql = "UPDATE matricula SET aluno_id=?, turma_id=?, data_matricula=?, status=? WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, m.getAluno().getId());
+            stmt.setInt(2, m.getTurma().getId());
+            stmt.setDate(3, Date.valueOf(m.getDataMatricula()));
+            stmt.setString(4, m.getStatus());
+            stmt.setInt(5, m.getId());
             stmt.executeUpdate();
         }
     }
 
     public void excluir(int id) throws SQLException {
-        String sql = "DELETE FROM matricula WHERE id = ?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "DELETE FROM matricula WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
     }
 
     public Matricula buscarPorId(int id) throws SQLException {
-        String sql = "SELECT * FROM matricula WHERE id = ?";
-        Matricula matricula = null;
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String sql = "SELECT * FROM matricula WHERE id=?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                matricula = new Matricula();
-                matricula.setId(rs.getInt("id"));
-
-                Aluno aluno = new Aluno();
-                aluno.setId(rs.getInt("aluno_id"));
-                matricula.setAluno(aluno);
-
-                Turma turma = new Turma();
-                turma.setId(rs.getInt("turma_id"));
-                matricula.setTurma(turma);
-
-                matricula.setDataMatricula(rs.getDate("data_matricula").toLocalDate());
-                matricula.setStatus(rs.getString("status"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapear(rs);
             }
         }
-
-        return matricula;
+        return null;
     }
 
-    public List<Matricula> listarTodas() throws SQLException {
+    public List<Matricula> listarTodos() throws SQLException {
         String sql = "SELECT * FROM matricula";
-        List<Matricula> lista = new ArrayList<>();
-
-        try (
-            Connection conn = Conexao.getConexao();
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery()
-        ) {
-            AlunoDAO alunoDAO = new AlunoDAO(conn);
-            TurmaDAO turmaDAO = new TurmaDAO();
-
-            while (rs.next()) {
-                Matricula m = new Matricula();
-                m.setId(rs.getInt("id"));
-                m.setDataMatricula(rs.getDate("data_matricula").toLocalDate());
-                m.setStatus(rs.getString("status"));
-
-                int alunoId = rs.getInt("aluno_id");
-                int turmaId = rs.getInt("turma_id");
-
-                Aluno aluno = alunoDAO.buscarPorId(alunoId);
-                Turma turma = turmaDAO.buscarPorId(turmaId);
-
-                m.setAluno(aluno);
-                m.setTurma(turma);
-
-                lista.add(m);
-            }
+        List<Matricula> list = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) list.add(mapear(rs));
         }
-
-        return lista;
+        return list;
     }
 
+    private Matricula mapear(ResultSet rs) throws SQLException {
+        Matricula m = new Matricula();
+        m.setId(rs.getInt("id"));
+        model.Aluno a = new model.Aluno();
+        a.setId(rs.getInt("aluno_id"));
+        m.setAluno(a);
+        model.Turma t = new model.Turma();
+        t.setId(rs.getInt("turma_id"));
+        m.setTurma(t);
+        m.setDataMatricula(rs.getDate("data_matricula").toLocalDate());
+        m.setStatus(rs.getString("status"));
+        m.setHistoricoNotas(new ArrayList<>());
+        return m;
+    }
 }

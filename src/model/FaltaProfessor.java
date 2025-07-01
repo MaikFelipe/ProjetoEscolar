@@ -21,14 +21,14 @@ public class FaltaProfessor {
 
     public FaltaProfessor() {}
 
-    public FaltaProfessor(int id, Professor professor, Disciplina disciplina, LocalDate data, String motivo, String documentoAnexo, Usuario usuarioRegistrou) {
+    public FaltaProfessor(int id, Professor professor, Disciplina disciplina, LocalDate data, String motivo, String documentoAnexo, Usuario usuarioRegistro) {
         this.id = id;
         this.professor = professor;
         this.disciplina = disciplina;
         this.data = data;
         this.motivo = motivo;
         this.documentoAnexo = documentoAnexo;
-        this.usuarioRegistro = usuarioRegistrou;
+        this.usuarioRegistro = usuarioRegistro;
     }
 
     public int getId() {

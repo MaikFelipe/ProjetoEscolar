@@ -1,191 +1,128 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model.view;
 
+/**
+ *
+ * @author LASEDi 1781
+ */
 import model.Aluno;
-import model.Usuario;
 import model.controller.AlunoController;
-import model.util.Conexao;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.sql.SQLException;
 
-public class TelaCadastroAluno extends JFrame {
+public class TelaCadastroAluno extends JDialog {
 
-    private JTextField tfNomeCompleto, tfCpf, tfEnderecoCompleto, tfTelefone;
+    private JTextField tfNome, tfDataNascimento, tfCpf, tfEndereco, tfTelefone;
     private JTextField tfNomeResponsavel, tfCpfResponsavel, tfEmailResponsavel, tfTelefoneResponsavel;
-    private JTextField tfDataNascimento;
-    private JButton btnCadastrar, btnVoltar;
-    private AlunoController alunoController;
-    private Usuario usuarioLogado;
+    private JButton btnSalvar, btnCancelar;
+    private AlunoController controller;
+    private Aluno aluno;
+    private TelaAlunos telaAlunos;
 
-    public TelaCadastroAluno(Usuario usuarioLogado) {
-        this.usuarioLogado = usuarioLogado;
+    public TelaCadastroAluno(JFrame parent, Aluno aluno) {
+        super(parent, "Cadastro de Aluno", true);
+        this.aluno = aluno;
+        this.telaAlunos = (TelaAlunos) parent;
 
-        try {
-            Connection connection = Conexao.getConexao();
-            alunoController = new AlunoController();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco de dados: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            dispose();
-            return;
-        }
+        controller = new AlunoController();
 
-        configurarJanela();
-        criarComponentes();
-    }
-
-    private void configurarJanela() {
-        setTitle("Cadastro de Aluno");
-        setSize(600, 550);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(400, 500);
+        setLocationRelativeTo(parent);
         setLayout(new BorderLayout());
-    }
 
-    private void criarComponentes() {
-        JPanel painel = new JPanel(new GridBagLayout());
-        painel.setBackground(Color.WHITE);
-        painel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+        JPanel painel = new JPanel(new GridLayout(10, 2, 5, 5));
+        painel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
+        tfNome = new JTextField();
+        tfDataNascimento = new JTextField();
+        tfCpf = new JTextField();
+        tfEndereco = new JTextField();
+        tfTelefone = new JTextField();
+        tfNomeResponsavel = new JTextField();
+        tfCpfResponsavel = new JTextField();
+        tfEmailResponsavel = new JTextField();
+        tfTelefoneResponsavel = new JTextField();
 
-        tfNomeCompleto = new JTextField(30);
-        tfCpf = new JTextField(15);
-        tfEnderecoCompleto = new JTextField(30);
-        tfTelefone = new JTextField(15);
-        tfNomeResponsavel = new JTextField(30);
-        tfCpfResponsavel = new JTextField(15);
-        tfEmailResponsavel = new JTextField(30);
-        tfTelefoneResponsavel = new JTextField(15);
-        tfDataNascimento = new JTextField(10);
+        painel.add(new JLabel("Nome Completo:"));
+        painel.add(tfNome);
+        painel.add(new JLabel("Data de Nascimento (dd-MM-yyyy):"));
+        painel.add(tfDataNascimento);
+        painel.add(new JLabel("CPF:"));
+        painel.add(tfCpf);
+        painel.add(new JLabel("Endereço:"));
+        painel.add(tfEndereco);
+        painel.add(new JLabel("Telefone:"));
+        painel.add(tfTelefone);
+        painel.add(new JLabel("Nome do Responsável:"));
+        painel.add(tfNomeResponsavel);
+        painel.add(new JLabel("CPF do Responsável:"));
+        painel.add(tfCpfResponsavel);
+        painel.add(new JLabel("Email do Responsável:"));
+        painel.add(tfEmailResponsavel);
+        painel.add(new JLabel("Telefone do Responsável:"));
+        painel.add(tfTelefoneResponsavel);
 
-        int y = 0;
+        JPanel painelBotoes = new JPanel(new FlowLayout());
+        btnSalvar = new JButton("Salvar");
+        btnCancelar = new JButton("Cancelar");
+        painelBotoes.add(btnSalvar);
+        painelBotoes.add(btnCancelar);
 
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Nome Completo:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfNomeCompleto, gbc);
-        y++;
+        add(painel, BorderLayout.CENTER);
+        add(painelBotoes, BorderLayout.SOUTH);
 
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Data de Nascimento:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfDataNascimento, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("CPF:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfCpf, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Endereço Completo:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfEnderecoCompleto, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Telefone:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfTelefone, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Nome do Responsável:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfNomeResponsavel, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("CPF do Responsável:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfCpfResponsavel, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("E-mail do Responsável:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfEmailResponsavel, gbc);
-        y++;
-
-        gbc.gridx = 0; gbc.gridy = y;
-        painel.add(new JLabel("Telefone do Responsável:"), gbc);
-        gbc.gridx = 1;
-        painel.add(tfTelefoneResponsavel, gbc);
-        y++;
-
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        btnCadastrar = new JButton("Cadastrar");
-        btnVoltar = new JButton("Voltar");
-
-        btnCadastrar.addActionListener(e -> cadastrarAluno());
-        btnVoltar.addActionListener(e -> {
-            dispose();
-            new TelaPrincipal(usuarioLogado).setVisible(true);
-        });
-
-        painelBotoes.add(btnCadastrar);
-        painelBotoes.add(btnVoltar);
-
-        gbc.gridx = 0; gbc.gridy = y; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        painel.add(painelBotoes, gbc);
-
-        add(new JScrollPane(painel), BorderLayout.CENTER);
-    }
-
-    private void cadastrarAluno() {
-        String nome = tfNomeCompleto.getText().trim();
-        String dataNascStr = tfDataNascimento.getText().trim();
-        String cpf = tfCpf.getText().trim();
-        String endereco = tfEnderecoCompleto.getText().trim();
-        String telefone = tfTelefone.getText().trim();
-        String nomeResp = tfNomeResponsavel.getText().trim();
-        String cpfResp = tfCpfResponsavel.getText().trim();
-        String emailResp = tfEmailResponsavel.getText().trim();
-        String telResp = tfTelefoneResponsavel.getText().trim();
-
-        if (nome.isEmpty() || dataNascStr.isEmpty() || cpf.isEmpty() || endereco.isEmpty() || telefone.isEmpty()
-                || nomeResp.isEmpty() || cpfResp.isEmpty() || emailResp.isEmpty() || telResp.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
+        if (aluno != null) {
+            preencherCampos();
         }
 
-        LocalDate dataNascimento;
+        btnSalvar.addActionListener(e -> salvarAluno());
+        btnCancelar.addActionListener(e -> dispose());
+    }
+
+    private void preencherCampos() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        tfNome.setText(aluno.getNomeCompleto());
+        tfDataNascimento.setText(aluno.getDataNascimento().format(formatter));
+        tfCpf.setText(aluno.getCpf());
+        tfEndereco.setText(aluno.getEnderecoCompleto());
+        tfTelefone.setText(aluno.getTelefone());
+        tfNomeResponsavel.setText(aluno.getNomeResponsavel());
+        tfCpfResponsavel.setText(aluno.getCpfResponsavel());
+        tfEmailResponsavel.setText(aluno.getEmailResponsavel());
+        tfTelefoneResponsavel.setText(aluno.getTelefoneResponsavel());
+    }
+
+    private void salvarAluno() {
         try {
+            if (aluno == null) {
+                aluno = new Aluno();
+            }
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            dataNascimento = LocalDate.parse(dataNascStr, formatter);
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this, "Data de nascimento inválida. Use o formato dd-MM-aaaa.", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
 
-        Aluno aluno = new Aluno();
-        aluno.setNomeCompleto(nome);
-        aluno.setDataNascimento(dataNascimento);
-        aluno.setCpf(cpf);
-        aluno.setEnderecoCompleto(endereco);
-        aluno.setTelefone(telefone);
-        aluno.setNomeResponsavel(nomeResp);
-        aluno.setCpfResponsavel(cpfResp);
-        aluno.setEmailResponsavel(emailResp);
-        aluno.setTelefoneResponsavel(telResp);
+            aluno.setNomeCompleto(tfNome.getText());
+            aluno.setDataNascimento(LocalDate.parse(tfDataNascimento.getText(), formatter));
+            aluno.setCpf(tfCpf.getText());
+            aluno.setEnderecoCompleto(tfEndereco.getText());
+            aluno.setTelefone(tfTelefone.getText());
+            aluno.setNomeResponsavel(tfNomeResponsavel.getText());
+            aluno.setCpfResponsavel(tfCpfResponsavel.getText());
+            aluno.setEmailResponsavel(tfEmailResponsavel.getText());
+            aluno.setTelefoneResponsavel(tfTelefoneResponsavel.getText());
 
-        try {
-            alunoController.salvarAluno(aluno);
-            JOptionPane.showMessageDialog(this, "Aluno cadastrado com sucesso!");
+            controller.salvarAluno(aluno);
+            telaAlunos.carregarTabela();
             dispose();
-            new TelaPrincipal(usuarioLogado).setVisible(true);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao cadastrar aluno: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar aluno: " + e.getMessage());
         }
     }
 }

@@ -9,11 +9,10 @@ package model.dao;
  * @author LASEDi 1781
  */
 import model.Escola;
+import model.Municipio;
 import model.Usuario;
-import model.dao.UsuarioDao;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class EscolaDAO {
     private Connection connection;
@@ -23,15 +22,16 @@ public class EscolaDAO {
     }
 
     public void inserir(Escola e) throws SQLException {
-        String sql = "INSERT INTO escola (nome, endereco, telefone, email, diretor) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO escola (nome, endereco_completo, bairro, municipio_id, telefone, email, usuario_diretor_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, e.getNome());
             stmt.setString(2, e.getEnderecoCompleto());
-            stmt.setString(3, e.getTelefone());
-            stmt.setString(4, e.getEmail());
-            stmt.setString(5, e.getUsuarioDiretor() != null ? e.getUsuarioDiretor().getLogin() : null);
+            stmt.setString(3, e.getBairro());
+            stmt.setInt(4, e.getMunicipio().getId());
+            stmt.setString(5, e.getTelefone());
+            stmt.setString(6, e.getEmail());
+            stmt.setInt(7, e.getUsuarioDiretor().getId());
             stmt.executeUpdate();
-
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) e.setId(rs.getInt(1));
             }
@@ -39,14 +39,16 @@ public class EscolaDAO {
     }
 
     public void atualizar(Escola e) throws SQLException {
-        String sql = "UPDATE escola SET nome=?, endereco=?, telefone=?, email=?, diretor=? WHERE id=?";
+        String sql = "UPDATE escola SET nome=?, endereco_completo=?, bairro=?, municipio_id=?, telefone=?, email=?, usuario_diretor_id=? WHERE id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, e.getNome());
             stmt.setString(2, e.getEnderecoCompleto());
-            stmt.setString(3, e.getTelefone());
-            stmt.setString(4, e.getEmail());
-            stmt.setString(5, e.getUsuarioDiretor() != null ? e.getUsuarioDiretor().getLogin() : null);
-            stmt.setInt(6, e.getId());
+            stmt.setString(3, e.getBairro());
+            stmt.setInt(4, e.getMunicipio().getId());
+            stmt.setString(5, e.getTelefone());
+            stmt.setString(6, e.getEmail());
+            stmt.setInt(7, e.getUsuarioDiretor().getId());
+            stmt.setInt(8, e.getId());
             stmt.executeUpdate();
         }
     }
@@ -64,7 +66,7 @@ public class EscolaDAO {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return mapearEscola(rs);
+                if (rs.next()) return mapear(rs);
             }
         }
         return null;
@@ -75,32 +77,25 @@ public class EscolaDAO {
         List<Escola> list = new ArrayList<>();
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapearEscola(rs));
-            }
+            while (rs.next()) list.add(mapear(rs));
         }
         return list;
     }
 
-    private Escola mapearEscola(ResultSet rs) throws SQLException {
+    private Escola mapear(ResultSet rs) throws SQLException {
         Escola e = new Escola();
+        Municipio municipio = new Municipio();
+        municipio.setId(rs.getInt("municipio_id"));
+        Usuario diretor = new Usuario();
+        diretor.setId(rs.getInt("usuario_diretor_id"));
+
         e.setId(rs.getInt("id"));
         e.setNome(rs.getString("nome"));
-        e.setEnderecoCompleto(rs.getString("endereco"));
+        e.setEnderecoCompleto(rs.getString("endereco_completo"));
+        e.setBairro(rs.getString("bairro"));
+        e.setMunicipio(municipio);
         e.setTelefone(rs.getString("telefone"));
         e.setEmail(rs.getString("email"));
-
-        String loginDiretor = rs.getString("diretor");
-        Usuario diretor = null;
-        if (loginDiretor != null) {
-            try {
-                UsuarioDao usuarioDao = new UsuarioDao();
-                diretor = usuarioDao.buscarPorLogin(loginDiretor);
-            } catch (SQLException ex) {
-                diretor = null;
-            }
-        }
-
         e.setUsuarioDiretor(diretor);
         return e;
     }

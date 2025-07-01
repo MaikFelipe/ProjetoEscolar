@@ -8,64 +8,34 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+// FaltaProfessorController.java
+import model.dao.FaltaProfessorDAO;
+import model.FaltaProfessor;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import model.FaltaProfessor;
-import model.dao.FaltaProfessorDAO;
 
 public class FaltaProfessorController {
+    private FaltaProfessorDAO dao;
 
-    private FaltaProfessorDAO faltaProfessorDAO;
-
-    public FaltaProfessorController() {
-        this.faltaProfessorDAO = new FaltaProfessorDAO();
+    public FaltaProfessorController(Connection connection) {
+        this.dao = new FaltaProfessorDAO(connection);
     }
 
-    public String cadastrarFalta(FaltaProfessor falta) {
-        try {
-            faltaProfessorDAO.inserir(falta);
-            return "Falta registrada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao registrar falta: " + e.getMessage();
-        }
+    public void salvar(FaltaProfessor f) throws SQLException {
+        if (f.getId() == 0) dao.inserir(f);
+        else dao.atualizar(f);
     }
 
-    public String atualizarFalta(FaltaProfessor falta) {
-        try {
-            faltaProfessorDAO.atualizar(falta);
-            return "Falta atualizada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao atualizar falta: " + e.getMessage();
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public String excluirFalta(int id) {
-        try {
-            faltaProfessorDAO.deletar(id);
-            return "Falta excluída com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao excluir falta: " + e.getMessage();
-        }
+    public FaltaProfessor buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public FaltaProfessor buscarFaltaPorId(int id) {
-        try {
-            return faltaProfessorDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<FaltaProfessor> listarFaltas() {
-        try {
-            return faltaProfessorDAO.listarTodas();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<FaltaProfessor> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }

@@ -12,11 +12,11 @@ public class Municipio {
     private int id;
     private String nome;
     private String estado;
-    private String secretarioEducacao;
+    private Usuario secretarioEducacao;
     
     public Municipio() {}
     
-    public Municipio(int id, String nome, String estado, String secretarioEducacao) {
+    public Municipio(int id, String nome, String estado, Usuario secretarioEducacao) {
         this.id = id;
         this.nome = nome;
         this.estado = estado;
@@ -45,10 +45,10 @@ public class Municipio {
         this.estado = estado;
     }
     
-    public String getSecretarioEducacao(){
+    public Usuario getSecretarioEducacao(){
         return secretarioEducacao;
     }
-    public void setSecretarioEducacao(String secretarioEducacao) {
+    public void setSecretarioEducacao(Usuario secretarioEducacao) {
         this.secretarioEducacao = secretarioEducacao;
     }
 }

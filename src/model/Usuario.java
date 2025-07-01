@@ -17,11 +17,11 @@ public class Usuario {
     private String cargo;
     private String login;
     private String senha;
-    private String nivelAcesso;
+    private int nivelAcesso;
     
        public Usuario() {}
 
-    public Usuario(int id, String nomeCompleto, String cpf, String email, String telefone, String cargo, String login, String senha, String nivelAcesso) {
+    public Usuario(int id, String nomeCompleto, String cpf, String email, String telefone, String cargo, String login, String senha, int nivelAcesso) {
         this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.cpf = cpf;
@@ -90,10 +90,10 @@ public class Usuario {
         this.senha = senha;
     }
 
-    public String getNivelAcesso() {
+    public int getNivelAcesso() {
         return nivelAcesso;
     }
-    public void setNivelAcesso(String nivelAcesso) {
+    public void setNivelAcesso(int nivelAcesso) {
         this.nivelAcesso = nivelAcesso;
     }
     @Override

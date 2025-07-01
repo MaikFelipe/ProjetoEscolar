@@ -1,5 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model.view;
 
+/**
+ *
+ * @author LASEDi 1781
+ */
 import javax.swing.*;
 import java.awt.*;
 import model.Usuario;
@@ -66,9 +74,14 @@ public class TelaCadastroUsuario extends JFrame {
         pfSenha = new JPasswordField(15);
 
         JLabel lbNivelAcesso = new JLabel("Nível de Acesso:");
-        cbNivelAcesso = new JComboBox<>(new String[] {
-            "SecretarioEducacao", "SuperUsuario", "Diretor", "SecretarioEscolar", "Professor"
-        });
+
+        if (usuarioLogado.getNivelAcesso() == 1) {
+            cbNivelAcesso = new JComboBox<>(new String[] { "SuperUsuario" });
+        } else {
+            cbNivelAcesso = new JComboBox<>(new String[] {
+                "SecretarioEducacao", "SuperUsuario", "Diretor", "SecretarioEscolar", "Professor"
+            });
+        }
 
         btnCadastrar = new JButton(usuarioEditando == null ? "Cadastrar" : "Salvar");
         btnVoltar = new JButton("Voltar");
@@ -118,7 +131,15 @@ public class TelaCadastroUsuario extends JFrame {
         tfTelefone.setText(usuarioEditando.getTelefone());
         tfCargo.setText(usuarioEditando.getCargo());
         tfLogin.setText(usuarioEditando.getLogin());
-        cbNivelAcesso.setSelectedItem(usuarioEditando.getNivelAcesso());
+
+        String nivelStr = nivelAcessoIdParaString(usuarioEditando.getNivelAcesso());
+
+        if (usuarioLogado.getNivelAcesso() == 1) {
+            // Secretário só pode ver SuperUsuario
+            cbNivelAcesso.setSelectedItem("SuperUsuario");
+        } else {
+            cbNivelAcesso.setSelectedItem(nivelStr);
+        }
     }
 
     private void salvarUsuario() {
@@ -129,7 +150,8 @@ public class TelaCadastroUsuario extends JFrame {
         String cargo = tfCargo.getText().trim();
         String login = tfLogin.getText().trim();
         String senha = new String(pfSenha.getPassword()).trim();
-        String nivelAcesso = (String) cbNivelAcesso.getSelectedItem();
+        String nivelAcessoStr = (String) cbNivelAcesso.getSelectedItem();
+        int nivelAcessoId = nivelAcessoStringParaId(nivelAcessoStr);
 
         if (nome.isEmpty() || cpf.isEmpty() || email.isEmpty() || telefone.isEmpty() ||
             cargo.isEmpty() || login.isEmpty() || (usuarioEditando == null && senha.isEmpty())) {
@@ -137,44 +159,66 @@ public class TelaCadastroUsuario extends JFrame {
             return;
         }
 
-        if (usuarioEditando == null) {
-            String senhaCriptografada = Criptografia.criptografar(senha);
-            Usuario novo = new Usuario();
-            novo.setNomeCompleto(nome);
-            novo.setCpf(cpf);
-            novo.setEmail(email);
-            novo.setTelefone(telefone);
-            novo.setCargo(cargo);
-            novo.setLogin(login);
-            novo.setSenha(senhaCriptografada);
-            novo.setNivelAcesso(nivelAcesso);
+        // Se for Secretário (nível 1), só pode cadastrar nível 2
+        if (usuarioLogado.getNivelAcesso() == 1 && nivelAcessoId != 2) {
+            JOptionPane.showMessageDialog(this, "Secretário só pode cadastrar usuários do nível SuperUsuario.", "Erro", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-            try {
+        try {
+            if (usuarioEditando == null) {
+                Usuario novo = new Usuario();
+                novo.setNomeCompleto(nome);
+                novo.setCpf(cpf);
+                novo.setEmail(email);
+                novo.setTelefone(telefone);
+                novo.setCargo(cargo);
+                novo.setLogin(login);
+                novo.setSenha(Criptografia.criptografar(senha));
+                novo.setNivelAcesso(nivelAcessoId);
+
                 usuarioController.cadastrarUsuario(novo);
                 JOptionPane.showMessageDialog(this, "Usuário cadastrado com sucesso!");
-                dispose();
-            } catch (SQLException | IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
-            usuarioEditando.setNomeCompleto(nome);
-            usuarioEditando.setCpf(cpf);
-            usuarioEditando.setEmail(email);
-            usuarioEditando.setTelefone(telefone);
-            usuarioEditando.setCargo(cargo);
-            usuarioEditando.setLogin(login);
-            if (!senha.isEmpty()) {
-                usuarioEditando.setSenha(Criptografia.criptografar(senha));
-            }
-            usuarioEditando.setNivelAcesso(nivelAcesso);
+            } else {
+                usuarioEditando.setNomeCompleto(nome);
+                usuarioEditando.setCpf(cpf);
+                usuarioEditando.setEmail(email);
+                usuarioEditando.setTelefone(telefone);
+                usuarioEditando.setCargo(cargo);
+                usuarioEditando.setLogin(login);
+                if (!senha.isEmpty()) {
+                    usuarioEditando.setSenha(Criptografia.criptografar(senha));
+                }
+                usuarioEditando.setNivelAcesso(nivelAcessoId);
 
-            try {
                 usuarioController.atualizarUsuario(usuarioEditando);
                 JOptionPane.showMessageDialog(this, "Usuário atualizado com sucesso!");
-                dispose();
-            } catch (SQLException | IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
             }
+            dispose();
+        } catch (SQLException | IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private int nivelAcessoStringParaId(String nivel) {
+        switch (nivel) {
+            case "SecretarioEducacao": return 1;
+            case "SuperUsuario": return 2;
+            case "Diretor": return 3;
+            case "SecretarioEscolar": return 4;
+            case "Professor": return 5;
+            default: return 0;
+        }
+    }
+
+    private String nivelAcessoIdParaString(int id) {
+        switch (id) {
+            case 1: return "SecretarioEducacao";
+            case 2: return "SuperUsuario";
+            case 3: return "Diretor";
+            case 4: return "SecretarioEscolar";
+            case 5: return "Professor";
+            default: return "";
         }
     }
 }

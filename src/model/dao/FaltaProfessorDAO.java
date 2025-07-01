@@ -8,54 +8,52 @@ package model.dao;
  *
  * @author LASEDi 1781
  */
+import model.FaltaProfessor;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import model.FaltaProfessor;
-import model.Professor;
-import model.Disciplina;
-import model.Usuario;
-import model.util.Conexao;
 
 public class FaltaProfessorDAO {
+    private Connection connection;
 
-    public void inserir(FaltaProfessor falta) throws SQLException {
+    public FaltaProfessorDAO(Connection connection) {
+        this.connection = connection;
+    }
+
+    public void inserir(FaltaProfessor f) throws SQLException {
         String sql = "INSERT INTO falta_professor (professor_id, disciplina_id, data, motivo, documento_anexo, usuario_registro_id) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, falta.getProfessor().getId());
-            stmt.setInt(2, falta.getDisciplina().getId());
-            stmt.setDate(3, Date.valueOf(falta.getData()));
-            stmt.setString(4, falta.getMotivo());
-            stmt.setString(5, falta.getDocumentoAnexo());
-            stmt.setInt(6, falta.getUsuarioRegistro().getId());
-
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, f.getProfessor().getId());
+            stmt.setInt(2, f.getDisciplina().getId());
+            stmt.setDate(3, Date.valueOf(f.getData()));
+            stmt.setString(4, f.getMotivo());
+            stmt.setString(5, f.getDocumentoAnexo());
+            stmt.setInt(6, f.getUsuarioRegistro().getId());
             stmt.executeUpdate();
+            try (ResultSet rs = stmt.getGeneratedKeys()) {
+                if (rs.next()) f.setId(rs.getInt(1));
+            }
         }
     }
 
-    public void atualizar(FaltaProfessor falta) throws SQLException {
+    public void atualizar(FaltaProfessor f) throws SQLException {
         String sql = "UPDATE falta_professor SET professor_id=?, disciplina_id=?, data=?, motivo=?, documento_anexo=?, usuario_registro_id=? WHERE id=?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, falta.getProfessor().getId());
-            stmt.setInt(2, falta.getDisciplina().getId());
-            stmt.setDate(3, Date.valueOf(falta.getData()));
-            stmt.setString(4, falta.getMotivo());
-            stmt.setString(5, falta.getDocumentoAnexo());
-            stmt.setInt(6, falta.getUsuarioRegistro().getId());
-            stmt.setInt(7, falta.getId());
-
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, f.getProfessor().getId());
+            stmt.setInt(2, f.getDisciplina().getId());
+            stmt.setDate(3, Date.valueOf(f.getData()));
+            stmt.setString(4, f.getMotivo());
+            stmt.setString(5, f.getDocumentoAnexo());
+            stmt.setInt(6, f.getUsuarioRegistro().getId());
+            stmt.setInt(7, f.getId());
             stmt.executeUpdate();
         }
     }
 
-    public void deletar(int id) throws SQLException {
+    public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM falta_professor WHERE id=?";
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
@@ -63,68 +61,40 @@ public class FaltaProfessorDAO {
 
     public FaltaProfessor buscarPorId(int id) throws SQLException {
         String sql = "SELECT * FROM falta_professor WHERE id=?";
-        FaltaProfessor falta = null;
-
-        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                falta = new FaltaProfessor();
-                falta.setId(rs.getInt("id"));
-
-                Professor p = new Professor();
-                p.setId(rs.getInt("professor_id"));
-                falta.setProfessor(p);
-
-                Disciplina d = new Disciplina();
-                d.setId(rs.getInt("disciplina_id"));
-                falta.setDisciplina(d);
-
-                falta.setData(rs.getDate("data").toLocalDate());
-                falta.setMotivo(rs.getString("motivo"));
-                falta.setDocumentoAnexo(rs.getString("documento_anexo"));
-
-                Usuario u = new Usuario();
-                u.setId(rs.getInt("usuario_registro_id"));
-                falta.setUsuarioRegistro(u);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return mapear(rs);
             }
         }
-
-        return falta;
+        return null;
     }
 
-    public List<FaltaProfessor> listarTodas() throws SQLException {
+    public List<FaltaProfessor> listarTodos() throws SQLException {
         String sql = "SELECT * FROM falta_professor";
-        List<FaltaProfessor> faltas = new ArrayList<>();
-
-        try (Connection conn = Conexao.getConexao(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                FaltaProfessor falta = new FaltaProfessor();
-                falta.setId(rs.getInt("id"));
-
-                Professor p = new Professor();
-                p.setId(rs.getInt("professor_id"));
-                falta.setProfessor(p);
-
-                Disciplina d = new Disciplina();
-                d.setId(rs.getInt("disciplina_id"));
-                falta.setDisciplina(d);
-
-                falta.setData(rs.getDate("data").toLocalDate());
-                falta.setMotivo(rs.getString("motivo"));
-                falta.setDocumentoAnexo(rs.getString("documento_anexo"));
-
-                Usuario u = new Usuario();
-                u.setId(rs.getInt("usuario_registro_id"));
-                falta.setUsuarioRegistro(u);
-
-                faltas.add(falta);
-            }
+        List<FaltaProfessor> list = new ArrayList<>();
+        try (PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) list.add(mapear(rs));
         }
+        return list;
+    }
 
-        return faltas;
+    private FaltaProfessor mapear(ResultSet rs) throws SQLException {
+        FaltaProfessor f = new FaltaProfessor();
+        f.setId(rs.getInt("id"));
+        model.Professor p = new model.Professor();
+        p.setId(rs.getInt("professor_id"));
+        f.setProfessor(p);
+        model.Disciplina d = new model.Disciplina();
+        d.setId(rs.getInt("disciplina_id"));
+        f.setDisciplina(d);
+        f.setData(rs.getDate("data").toLocalDate());
+        f.setMotivo(rs.getString("motivo"));
+        f.setDocumentoAnexo(rs.getString("documento_anexo"));
+        model.Usuario u = new model.Usuario();
+        u.setId(rs.getInt("usuario_registro_id"));
+        f.setUsuarioRegistro(u);
+        return f;
     }
 }

@@ -10,7 +10,6 @@ package model.controller;
  */
 import model.Usuario;
 import model.dao.UsuarioDao;
-
 import java.sql.SQLException;
 import java.util.List;
 
@@ -22,20 +21,20 @@ public class UsuarioController {
         usuarioDao = new UsuarioDao();
     }
 
-    public boolean loginExiste(String login) throws SQLException {
-        return usuarioDao.loginExiste(login);
-    }
-
     public void cadastrarUsuario(Usuario usuario) throws SQLException {
-        if (usuario.getLogin() == null || usuario.getLogin().isEmpty()) {
-            throw new IllegalArgumentException("Login não pode ser vazio");
+        if (usuario.getNomeCompleto().isEmpty() || usuario.getCpf().isEmpty() || usuario.getEmail().isEmpty()
+                || usuario.getTelefone().isEmpty() || usuario.getCargo().isEmpty()
+                || usuario.getLogin().isEmpty() || usuario.getSenha().isEmpty()) {
+            throw new IllegalArgumentException("Todos os campos obrigatórios devem ser preenchidos.");
         }
         usuarioDao.cadastrarUsuario(usuario);
     }
 
     public void atualizarUsuario(Usuario usuario) throws SQLException {
-        if (usuario.getId() <= 0) {
-            throw new IllegalArgumentException("ID do usuário inválido");
+        if (usuario.getNomeCompleto().isEmpty() || usuario.getCpf().isEmpty() || usuario.getEmail().isEmpty()
+                || usuario.getTelefone().isEmpty() || usuario.getCargo().isEmpty()
+                || usuario.getLogin().isEmpty()) {
+            throw new IllegalArgumentException("Todos os campos obrigatórios devem ser preenchidos.");
         }
         usuarioDao.atualizar(usuario);
     }
@@ -56,7 +55,11 @@ public class UsuarioController {
         return usuarioDao.listarTodos();
     }
 
-    public List<Usuario> listarPorNivelAcesso(String nivel) throws SQLException {
-        return usuarioDao.listarPorNivelAcesso(nivel);
+    public List<Usuario> listarPorNivelAcesso(int nivel) throws SQLException {
+        return usuarioDao.listarPorNivelAcesso(String.valueOf(nivel));
+    }
+    
+    public Usuario autenticar(String login, String senhaCriptografada) throws SQLException {
+        return usuarioDao.autenticar(login, senhaCriptografada);
     }
 }

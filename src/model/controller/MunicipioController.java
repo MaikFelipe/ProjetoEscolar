@@ -8,64 +8,40 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+import model.dao.MunicipioDAO;
+import model.Municipio;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
-import model.Municipio;
-import model.dao.MunicipioDAO;
 
 public class MunicipioController {
+    private MunicipioDAO dao;
 
-    private MunicipioDAO municipioDAO;
-
-    public MunicipioController() {
-        this.municipioDAO = new MunicipioDAO();
+    public MunicipioController(Connection connection) {
+        this.dao = new MunicipioDAO(connection);
     }
 
-    public String cadastrarMunicipio(Municipio m) {
-        try {
-            municipioDAO.inserir(m);
-            return "Município cadastrado com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao cadastrar município: " + e.getMessage();
+    public void salvar(Municipio m) throws SQLException {
+        if (m.getSecretarioEducacao() == null || m.getSecretarioEducacao().getId() == 0) {
+            throw new IllegalArgumentException("Secretário de Educação inválido.");
+        }
+
+        if (m.getId() == 0) {
+            dao.inserir(m);
+        } else {
+            dao.atualizar(m);
         }
     }
 
-    public String atualizarMunicipio(Municipio m) {
-        try {
-            municipioDAO.atualizar(m);
-            return "Município atualizado com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao atualizar município: " + e.getMessage();
-        }
+    public void excluir(int id) throws SQLException {
+        dao.excluir(id);
     }
 
-    public String excluirMunicipio(int id) {
-        try {
-            municipioDAO.deletar(id);
-            return "Município excluído com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao excluir município: " + e.getMessage();
-        }
+    public Municipio buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public Municipio buscarMunicipioPorId(int id) {
-        try {
-            return municipioDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public List<Municipio> listarMunicipios() {
-        try {
-            return municipioDAO.listarTodos();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<Municipio> listarTodos() throws SQLException {
+        return dao.listarTodos();
     }
 }
