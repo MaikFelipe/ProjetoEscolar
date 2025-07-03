@@ -51,4 +51,9 @@ public class Municipio {
     public void setSecretarioEducacao(Usuario secretarioEducacao) {
         this.secretarioEducacao = secretarioEducacao;
     }
+    
+    @Override
+    public String toString() {
+        return nome;
+    }
 }

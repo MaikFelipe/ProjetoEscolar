@@ -9,8 +9,14 @@ package model.view;
  * @author LASEDi 1781
  */
 import model.Usuario;
+import model.view.TelaSecretarioEducacao;
+import model.view.TelaSuperUsuario;
+import model.view.TelaDiretor;
+import model.view.TelaSecretarioEscolar;
+import model.view.TelaProfessor;
 import model.controller.UsuarioController;
 import model.util.Criptografia;
+
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
@@ -28,8 +34,7 @@ public class TelaLogin extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        JPanel painel = new JPanel();
-        painel.setLayout(new GridBagLayout());
+        JPanel painel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
@@ -65,11 +70,10 @@ public class TelaLogin extends JFrame {
     private void autenticar() {
         String login = tfLogin.getText().trim();
         String senha = new String(pfSenha.getPassword()).trim();
-        String senhaCriptografada = Criptografia.criptografar(senha);
 
         try {
             UsuarioController controller = new UsuarioController();
-            Usuario usuario = controller.autenticar(login, senhaCriptografada);
+            Usuario usuario = controller.autenticar(login, senha);
 
             if (usuario != null) {
                 int nivelId = usuario.getNivelAcesso();
@@ -96,8 +100,8 @@ public class TelaLogin extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(this, "Login ou senha incorretos.");
             }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao autenticar: " + ex.getMessage());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao autenticar: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 

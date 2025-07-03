@@ -10,7 +10,10 @@ package model.dao;
  */
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import model.Nota;
 import model.Aluno;
 import model.Disciplina;
@@ -118,5 +121,38 @@ public class NotaDAO {
         }
 
         return lista;
+    }
+    
+    public Map<Aluno, Map<Integer, Double>> getBoletimPorTurmaEDisciplina(int turmaId, int disciplinaId) throws SQLException {
+        String sql = """
+            SELECT n.bimestre, n.nota, a.id, a.nome_completo
+            FROM nota n
+            JOIN aluno a ON n.aluno_id = a.id
+            WHERE n.turma_id = ? AND n.disciplina_id = ?
+            ORDER BY a.nome_completo, n.bimestre
+        """;
+
+        Map<Aluno, Map<Integer, Double>> boletim = new LinkedHashMap<>();
+
+        try (Connection conn = Conexao.getConexao(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, turmaId);
+            stmt.setInt(2, disciplinaId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int bimestre = rs.getInt("bimestre");
+                    double nota = rs.getDouble("nota");
+
+                    Aluno aluno = new Aluno();
+                    aluno.setId(rs.getInt("id"));
+                    aluno.setNomeCompleto(rs.getString("nome_completo"));
+
+                    boletim.putIfAbsent(aluno, new HashMap<>());
+                    boletim.get(aluno).put(bimestre, nota);
+                }
+            }
+        }
+
+        return boletim;
     }
 }

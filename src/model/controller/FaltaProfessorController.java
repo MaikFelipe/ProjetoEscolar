@@ -8,7 +8,6 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-// FaltaProfessorController.java
 import model.dao.FaltaProfessorDAO;
 import model.FaltaProfessor;
 import java.sql.Connection;

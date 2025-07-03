@@ -8,8 +8,6 @@ package model.dao;
  *
  * @author LASEDi 1781
  */
-// AlunoDAO.java
-// AlunoDAO.java
 import model.Aluno;
 import java.sql.*;
 import java.time.LocalDate;

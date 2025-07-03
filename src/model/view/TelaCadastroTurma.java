@@ -8,142 +8,141 @@ package model.view;
  *
  * @author LASEDi 1781
  */
+import model.Escola;
+import model.Professor;
 import model.Turma;
+import model.controller.EscolaController;
+import model.controller.ProfessorController;
 import model.controller.TurmaController;
-import model.Usuario;
-
+import model.util.Conexao;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 public class TelaCadastroTurma extends JFrame {
 
-    private Usuario usuarioLogado;
-    private TurmaController controller;
-    private JTable tabelaTurmas;
-    private DefaultTableModel tabelaModel;
     private JTextField tfNome, tfSerie, tfNivelEnsino, tfAnoLetivo, tfTurno, tfNumMinAlunos, tfNumMaxAlunos;
-    private JButton btnSalvar, btnAtualizar, btnExcluir, btnVoltar;
+    private JComboBox<Escola> cbEscola;
+    private JComboBox<Professor> cbProfessor;
+    private JButton btnSalvar, btnCancelar;
+    private Turma turma;
+    private TurmaController controller;
+    private EscolaController escolaController;
+    private ProfessorController professorController;
+    private TelaTurmas telaTurmasPai;
 
-    public TelaCadastroTurma(Usuario usuario) {
-        this.usuarioLogado = usuario;
-        controller = new TurmaController();
-        setTitle("Cadastro de Turma");
-        setExtendedState(MAXIMIZED_BOTH);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        initComponents();
-        carregarTurmas();
-        setVisible(true);
-    }
+    public TelaCadastroTurma(TelaTurmas telaTurmasPai, Turma turma) {
+        this.telaTurmasPai = telaTurmasPai;
+        this.turma = turma;
+        setTitle(turma == null ? "Cadastrar Turma" : "Editar Turma");
+        setSize(450, 400);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout(10, 10));
 
-    private void initComponents() {
-        JPanel painelPrincipal = new JPanel(new BorderLayout(10, 10));
+        try {
+            Connection conn = Conexao.getConexao();
+            escolaController = new EscolaController(conn);
+            professorController = new ProfessorController();
+            controller = new TurmaController(conn);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao conectar com o banco: " + e.getMessage());
+            dispose();
+            return;
+        }
 
-        JPanel painelForm = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel painelCampos = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        painelForm.add(new JLabel("Nome:"));
-        tfNome = new JTextField(15);
-        painelForm.add(tfNome);
+        String[] labels = {"Nome:", "Série:", "Nível de Ensino:", "Ano Letivo:", "Turno:",
+                "Número Mínimo Alunos:", "Número Máximo Alunos:", "Escola:", "Professor Responsável:"};
+        Component[] componentes = new Component[9];
 
-        painelForm.add(new JLabel("Série:"));
-        tfSerie = new JTextField(10);
-        painelForm.add(tfSerie);
+        tfNome = new JTextField();
+        tfSerie = new JTextField();
+        tfNivelEnsino = new JTextField();
+        tfAnoLetivo = new JTextField();
+        tfTurno = new JTextField();
+        tfNumMinAlunos = new JTextField();
+        tfNumMaxAlunos = new JTextField();
+        cbEscola = new JComboBox<>();
+        cbProfessor = new JComboBox<>();
 
-        painelForm.add(new JLabel("Nível de Ensino:"));
-        tfNivelEnsino = new JTextField(15);
-        painelForm.add(tfNivelEnsino);
+        componentes[0] = tfNome;
+        componentes[1] = tfSerie;
+        componentes[2] = tfNivelEnsino;
+        componentes[3] = tfAnoLetivo;
+        componentes[4] = tfTurno;
+        componentes[5] = tfNumMinAlunos;
+        componentes[6] = tfNumMaxAlunos;
+        componentes[7] = cbEscola;
+        componentes[8] = cbProfessor;
 
-        painelForm.add(new JLabel("Ano Letivo:"));
-        tfAnoLetivo = new JTextField(5);
-        painelForm.add(tfAnoLetivo);
+        for (int i = 0; i < labels.length; i++) {
+            gbc.gridx = 0; gbc.gridy = i;
+            painelCampos.add(new JLabel(labels[i]), gbc);
+            gbc.gridx = 1;
+            painelCampos.add(componentes[i], gbc);
+        }
 
-        painelForm.add(new JLabel("Turno:"));
-        tfTurno = new JTextField(10);
-        painelForm.add(tfTurno);
+        add(painelCampos, BorderLayout.CENTER);
 
-        painelForm.add(new JLabel("Nº Mínimo Alunos:"));
-        tfNumMinAlunos = new JTextField(5);
-        painelForm.add(tfNumMinAlunos);
-
-        painelForm.add(new JLabel("Nº Máximo Alunos:"));
-        tfNumMaxAlunos = new JTextField(5);
-        painelForm.add(tfNumMaxAlunos);
-
+        JPanel painelBotoes = new JPanel();
         btnSalvar = new JButton("Salvar");
-        painelForm.add(btnSalvar);
+        btnCancelar = new JButton("Cancelar");
+        painelBotoes.add(btnSalvar);
+        painelBotoes.add(btnCancelar);
+        add(painelBotoes, BorderLayout.SOUTH);
 
-        btnAtualizar = new JButton("Atualizar");
-        btnAtualizar.setEnabled(false);
-        painelForm.add(btnAtualizar);
-
-        btnExcluir = new JButton("Excluir");
-        btnExcluir.setEnabled(false);
-        painelForm.add(btnExcluir);
-
-        btnVoltar = new JButton("Voltar");
-        painelForm.add(btnVoltar);
-
-        painelPrincipal.add(painelForm, BorderLayout.NORTH);
-
-        tabelaModel = new DefaultTableModel(new Object[]{
-                "ID", "Nome", "Série", "Nível Ensino", "Ano Letivo", "Turno", "Min. Alunos", "Max. Alunos"
-        }, 0) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-
-        tabelaTurmas = new JTable(tabelaModel);
-        tabelaTurmas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane scroll = new JScrollPane(tabelaTurmas);
-        painelPrincipal.add(scroll, BorderLayout.CENTER);
-
-        add(painelPrincipal);
+        carregarComboEscolas();
+        carregarComboProfessores();
+        if (turma != null) carregarCampos();
 
         btnSalvar.addActionListener(e -> salvarTurma());
-        btnAtualizar.addActionListener(e -> atualizarTurma());
-        btnExcluir.addActionListener(e -> excluirTurma());
-        btnVoltar.addActionListener(e -> voltar());
-
-        tabelaTurmas.getSelectionModel().addListSelectionListener(e -> {
-            boolean selecionado = tabelaTurmas.getSelectedRow() != -1;
-            btnAtualizar.setEnabled(selecionado);
-            btnExcluir.setEnabled(selecionado);
-            if (selecionado) {
-                int linha = tabelaTurmas.getSelectedRow();
-                tfNome.setText((String) tabelaModel.getValueAt(linha, 1));
-                tfSerie.setText((String) tabelaModel.getValueAt(linha, 2));
-                tfNivelEnsino.setText((String) tabelaModel.getValueAt(linha, 3));
-                tfAnoLetivo.setText(String.valueOf(tabelaModel.getValueAt(linha, 4)));
-                tfTurno.setText((String) tabelaModel.getValueAt(linha, 5));
-                tfNumMinAlunos.setText(String.valueOf(tabelaModel.getValueAt(linha, 6)));
-                tfNumMaxAlunos.setText(String.valueOf(tabelaModel.getValueAt(linha, 7)));
-            } else {
-                limparCampos();
-            }
-        });
+        btnCancelar.addActionListener(e -> dispose());
     }
 
-    private void carregarTurmas() {
-        List<Turma> turmas = controller.listarTurmas();
-        tabelaModel.setRowCount(0);
-        if (turmas != null) {
-            for (Turma t : turmas) {
-                tabelaModel.addRow(new Object[]{
-                        t.getId(),
-                        t.getNome(),
-                        t.getSerie(),
-                        t.getNivelEnsino(),
-                        t.getAnoLetivo(),
-                        t.getTurno(),
-                        t.getNumeroMinimoAlunos(),
-                        t.getNumeroMaximoAlunos()
-                });
+    private void carregarComboEscolas() {
+        try {
+            List<Escola> escolas = escolaController.listarTodos();
+            DefaultComboBoxModel<Escola> modelEscola = new DefaultComboBoxModel<>();
+            for (Escola e : escolas) {
+                modelEscola.addElement(e);
             }
-        } else {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar turmas.");
+            cbEscola.setModel(modelEscola);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar escolas: " + e.getMessage());
         }
+    }
+
+    private void carregarComboProfessores() {
+        try {
+            List<Professor> professores = professorController.listarProfessores();
+            DefaultComboBoxModel<Professor> modelProf = new DefaultComboBoxModel<>();
+            modelProf.addElement(null);
+            for (Professor p : professores) {
+                modelProf.addElement(p);
+            }
+            cbProfessor.setModel(modelProf);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar professores: " + e.getMessage());
+        }
+    }
+
+    private void carregarCampos() {
+        tfNome.setText(turma.getNome());
+        tfSerie.setText(turma.getSerie());
+        tfNivelEnsino.setText(turma.getNivelEnsino());
+        tfAnoLetivo.setText(String.valueOf(turma.getAnoLetivo()));
+        tfTurno.setText(turma.getTurno());
+        tfNumMinAlunos.setText(String.valueOf(turma.getNumeroMinimoAlunos()));
+        tfNumMaxAlunos.setText(String.valueOf(turma.getNumeroMaximoAlunos()));
+        cbEscola.setSelectedItem(turma.getEscola());
+        cbProfessor.setSelectedItem(turma.getProfessorResponsavel());
     }
 
     private void salvarTurma() {
@@ -155,79 +154,47 @@ public class TelaCadastroTurma extends JFrame {
             String turno = tfTurno.getText().trim();
             int numMin = Integer.parseInt(tfNumMinAlunos.getText().trim());
             int numMax = Integer.parseInt(tfNumMaxAlunos.getText().trim());
+            Escola escola = (Escola) cbEscola.getSelectedItem();
+            Professor professor = (Professor) cbProfessor.getSelectedItem();
 
-            if (nome.isEmpty() || serie.isEmpty() || nivelEnsino.isEmpty() || turno.isEmpty()) {
+            if (nome.isEmpty() || serie.isEmpty() || nivelEnsino.isEmpty() || turno.isEmpty() || escola == null) {
                 JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
                 return;
             }
-
-            Turma turma = new Turma(0, nome, serie, nivelEnsino, anoLetivo, turno, numMin, numMax);
-            String msg = controller.cadastrarTurma(turma);
-            JOptionPane.showMessageDialog(this, msg);
-            carregarTurmas();
-            limparCampos();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Ano Letivo, Nº Mínimo e Nº Máximo devem ser números válidos.");
-        }
-    }
-
-    private void atualizarTurma() {
-        int linha = tabelaTurmas.getSelectedRow();
-        if (linha == -1) return;
-
-        try {
-            int id = (int) tabelaModel.getValueAt(linha, 0);
-            String nome = tfNome.getText().trim();
-            String serie = tfSerie.getText().trim();
-            String nivelEnsino = tfNivelEnsino.getText().trim();
-            int anoLetivo = Integer.parseInt(tfAnoLetivo.getText().trim());
-            String turno = tfTurno.getText().trim();
-            int numMin = Integer.parseInt(tfNumMinAlunos.getText().trim());
-            int numMax = Integer.parseInt(tfNumMaxAlunos.getText().trim());
-
-            if (nome.isEmpty() || serie.isEmpty() || nivelEnsino.isEmpty() || turno.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Preencha todos os campos obrigatórios.");
+            if (numMin < 0 || numMax < numMin) {
+                JOptionPane.showMessageDialog(this, "Valores inválidos para números de alunos.");
                 return;
             }
 
-            Turma turma = new Turma(id, nome, serie, nivelEnsino, anoLetivo, turno, numMin, numMax);
-            String msg = controller.atualizarTurma(turma);
-            JOptionPane.showMessageDialog(this, msg);
-            carregarTurmas();
-            limparCampos();
-            tabelaTurmas.clearSelection();
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Ano Letivo, Nº Mínimo e Nº Máximo devem ser números válidos.");
+            if (turma == null) {
+                turma = new Turma();
+            }
+
+            turma.setNome(nome);
+            turma.setSerie(serie);
+            turma.setNivelEnsino(nivelEnsino);
+            turma.setAnoLetivo(anoLetivo);
+            turma.setTurno(turno);
+            turma.setNumeroMinimoAlunos(numMin);
+            turma.setNumeroMaximoAlunos(numMax);
+            turma.setEscola(escola);
+            turma.setProfessorResponsavel(professor);
+
+            String resultado;
+            if (turma.getId() == 0) {
+                resultado = controller.cadastrarTurma(turma);
+            } else {
+                resultado = controller.atualizarTurma(turma);
+            }
+            JOptionPane.showMessageDialog(this, resultado);
+
+            telaTurmasPai.carregarTabela();
+            dispose();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Ano letivo, número mínimo e máximo devem ser números válidos.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar turma: " + e.getMessage());
         }
-    }
-
-    private void excluirTurma() {
-        int linha = tabelaTurmas.getSelectedRow();
-        if (linha == -1) return;
-
-        int id = (int) tabelaModel.getValueAt(linha, 0);
-        int confirm = JOptionPane.showConfirmDialog(this, "Confirma exclusão da turma?", "Confirmação", JOptionPane.YES_NO_OPTION);
-        if (confirm != JOptionPane.YES_OPTION) return;
-
-        String msg = controller.excluirTurma(id);
-        JOptionPane.showMessageDialog(this, msg);
-        carregarTurmas();
-        limparCampos();
-        tabelaTurmas.clearSelection();
-    }
-
-    private void limparCampos() {
-        tfNome.setText("");
-        tfSerie.setText("");
-        tfNivelEnsino.setText("");
-        tfAnoLetivo.setText("");
-        tfTurno.setText("");
-        tfNumMinAlunos.setText("");
-        tfNumMaxAlunos.setText("");
-    }
-
-    private void voltar() {
-        dispose();
-        new TelaPrincipal(usuarioLogado).setVisible(true);
     }
 }

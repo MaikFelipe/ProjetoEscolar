@@ -8,6 +8,7 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import model.Turma;
@@ -17,8 +18,8 @@ public class TurmaController {
 
     private TurmaDAO turmaDAO;
 
-    public TurmaController() {
-        this.turmaDAO = new TurmaDAO();
+    public TurmaController(Connection connection) {
+        this.turmaDAO = new TurmaDAO(connection);
     }
 
     public String cadastrarTurma(Turma turma) {

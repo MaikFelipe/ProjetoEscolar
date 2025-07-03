@@ -1,4 +1,4 @@
-/*
+ /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
@@ -97,7 +97,7 @@ public class TelaLancarNotas extends JFrame {
         try (Connection conn = Conexao.getConexao()) {
             AlunoDAO alunoDAO = new AlunoDAO(conn);
             DisciplinaDAO disciplinaDAO = new DisciplinaDAO(conn);
-            TurmaDAO turmaDAO = new TurmaDAO();
+            TurmaDAO turmaDAO = new TurmaDAO(conn);
 
             cbAluno.removeAllItems();
             for (Aluno a : alunoDAO.listarTodos()) cbAluno.addItem(a);
@@ -113,7 +113,7 @@ public class TelaLancarNotas extends JFrame {
         }
     }
 
-    private void salvarNota() {
+        private void salvarNota() {
         try {
             Aluno aluno = (Aluno) cbAluno.getSelectedItem();
             Disciplina disciplina = (Disciplina) cbDisciplina.getSelectedItem();
@@ -128,8 +128,9 @@ public class TelaLancarNotas extends JFrame {
             nota.setBimestre(bimestre);
             nota.setNota(valorNota);
 
-            String resposta = notaController.cadastrarNota(nota);
-            JOptionPane.showMessageDialog(this, resposta);
+            notaController.salvar(nota);
+
+            JOptionPane.showMessageDialog(this, "Nota salva com sucesso!");
             tfNota.setText("");
 
         } catch (NumberFormatException ex) {

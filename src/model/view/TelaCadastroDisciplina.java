@@ -37,7 +37,7 @@ public class TelaCadastroDisciplina extends JFrame {
 
         try {
             Connection conexao = Conexao.getConexao();
-            controller = new DisciplinaController(conexao);
+            controller = new DisciplinaController();
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + e.getMessage());
             System.exit(1);
@@ -93,7 +93,6 @@ public class TelaCadastroDisciplina extends JFrame {
         btnExcluir.addActionListener(e -> excluirDisciplina());
         btnVoltar.addActionListener(e -> {
             dispose();
-            new TelaPrincipal(usuarioLogado).setVisible(true);
         });
 
         tabelaDisciplinas.getSelectionModel().addListSelectionListener(e -> {
@@ -181,4 +180,6 @@ public class TelaCadastroDisciplina extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro ao excluir disciplina: " + e.getMessage());
         }
     }
+    
+    public static void main(String[] args) {}
 }

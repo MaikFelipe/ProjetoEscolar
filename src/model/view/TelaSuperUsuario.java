@@ -12,12 +12,12 @@ import model.Usuario;
 import javax.swing.*;
 import java.awt.*;
 
-public class TelaSecretarioEducacao extends JFrame {
+public class TelaSuperUsuario extends JFrame {
 
     private Usuario usuarioLogado;
     private final Color fundoClaro = new Color(245, 245, 245);
 
-    public TelaSecretarioEducacao(Usuario usuarioLogado) {
+    public TelaSuperUsuario(Usuario usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
 
         setUndecorated(true);
@@ -31,13 +31,13 @@ public class TelaSecretarioEducacao extends JFrame {
         painelSuperior.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         painelSuperior.setBackground(fundoClaro);
 
-        JLabel mensagem = new JLabel("Bem-vindo, Secretário " + usuarioLogado.getNomeCompleto(), SwingConstants.CENTER);
+        JLabel mensagem = new JLabel("Bem-vindo, Super Usuário " + usuarioLogado.getNomeCompleto(), SwingConstants.CENTER);
         mensagem.setFont(new Font("Arial", Font.PLAIN, 22));
         mensagem.setAlignmentX(Component.CENTER_ALIGNMENT);
         painelSuperior.add(mensagem);
         add(painelSuperior, BorderLayout.NORTH);
 
-        JLabel titulo = new JLabel("Sistema de Gestão Escolar - Secretário de Educação", SwingConstants.CENTER);
+        JLabel titulo = new JLabel("Sistema de Gestão Escolar - Super Usuário", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 26));
         titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(titulo, BorderLayout.SOUTH);
@@ -97,14 +97,5 @@ public class TelaSecretarioEducacao extends JFrame {
         new TelaLogin().setVisible(true);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Usuario u = new Usuario();
-            u.setId(1);
-            u.setNomeCompleto("Secretário");
-            u.setLogin("secretario");
-            u.setNivelAcesso(1);
-            new TelaSecretarioEducacao(u).setVisible(true);
-        });
-    }
+    public static void main(String[] args) {}
 }

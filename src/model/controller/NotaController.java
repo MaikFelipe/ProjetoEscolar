@@ -8,76 +8,43 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-import java.sql.SQLException;
 import model.Nota;
+import model.Aluno;
 import model.dao.NotaDAO;
+import model.util.Conexao;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class NotaController {
 
-    private NotaDAO notaDAO;
+    private NotaDAO dao;
 
     public NotaController() {
-        this.notaDAO = new NotaDAO();
+        this.dao = new NotaDAO();
     }
 
-    public String cadastrarNota(Nota nota) {
-        if (nota.getNota() < 0 || nota.getNota() > 10) {
-            return "A nota deve estar entre 0 e 10.";
-        }
-
-        if (nota.getBimestre() < 1 || nota.getBimestre() > 4) {
-            return "Bimestre inválido. Use valores de 1 a 4.";
-        }
-
-        try {
-            notaDAO.inserir(nota);
-            return "Nota cadastrada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao cadastrar nota: " + e.getMessage();
+    public void salvar(Nota nota) throws SQLException {
+        if (nota.getId() == 0) {
+            dao.inserir(nota);
+        } else {
+            dao.atualizar(nota);
         }
     }
 
-    public String atualizarNota(Nota nota) {
-        if (nota.getNota() < 0 || nota.getNota() > 10) {
-            return "A nota deve estar entre 0 e 10.";
-        }
-
-        try {
-            notaDAO.atualizar(nota);
-            return "Nota atualizada com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao atualizar nota: " + e.getMessage();
-        }
+    public void excluir(int id) throws SQLException {
+        dao.deletar(id);
     }
 
-    public String excluirNota(int id) {
-        try {
-            notaDAO.deletar(id);
-            return "Nota excluída com sucesso.";
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return "Erro ao excluir nota: " + e.getMessage();
-        }
+    public Nota buscar(int id) throws SQLException {
+        return dao.buscarPorId(id);
     }
 
-    public Nota buscarNotaPorId(int id) {
-        try {
-            return notaDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public List<Nota> listarTodas() throws SQLException {
+        return dao.listarTodas();
     }
 
-    public List<Nota> listarNotas() {
-        try {
-            return notaDAO.listarTodas();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Map<Aluno, Map<Integer, Double>> getBoletimPorTurmaEDisciplina(int turmaId, int disciplinaId) throws SQLException {
+        return dao.getBoletimPorTurmaEDisciplina(turmaId, disciplinaId);
     }
 }

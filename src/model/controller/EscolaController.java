@@ -8,7 +8,6 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-// EscolaController.java
 import model.dao.EscolaDAO;
 import model.Escola;
 import java.sql.Connection;
@@ -41,4 +40,9 @@ public class EscolaController {
     public List<Escola> listarTodos() throws SQLException {
         return dao.listarTodos();
     }
+
+    public Escola buscarPorDiretor(int diretorId) throws SQLException {
+        return dao.buscarPorDiretor(diretorId);
+    }
+
 }

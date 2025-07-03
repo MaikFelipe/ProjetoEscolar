@@ -74,7 +74,6 @@ public class TransferenciaDAO {
                 t = new Transferencia();
                 t.setId(rs.getInt("id"));
 
-                // Apenas atribuindo os IDs (sem buscar os objetos completos)
                 Aluno aluno = new Aluno();
                 aluno.setId(rs.getInt("aluno_id"));
                 t.setAluno(aluno);

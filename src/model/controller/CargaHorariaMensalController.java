@@ -8,7 +8,6 @@ package model.controller;
  *
  * @author LASEDi 1781
  */
-// CargaHorariaMensalController.java
 import model.dao.CargaHorariaMensalDAO;
 import model.CargaHorariaMensal;
 import java.sql.Connection;

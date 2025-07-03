@@ -10,62 +10,50 @@ package model.controller;
  */
 import model.Professor;
 import model.dao.ProfessorDAO;
+import model.dao.UsuarioDao;
+import model.dao.DisciplinaDAO;
+import model.Disciplina;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import model.util.Conexao;
 
 public class ProfessorController {
+    private ProfessorDAO professorDao;
+    private UsuarioDao usuarioDao;
+    private DisciplinaDAO disciplinaDao;
 
-    private ProfessorDAO professorDAO;
-
-    public ProfessorController() {
-        this.professorDAO = new ProfessorDAO();
+    public ProfessorController() throws SQLException {
+        Connection conn = Conexao.getConexao();
+        this.professorDao = new ProfessorDAO(conn);
+        this.usuarioDao = new UsuarioDao(conn);
+        this.disciplinaDao = new DisciplinaDAO(conn);
     }
 
-    public String cadastrarProfessor(Professor professor) {
-        try {
-            professorDAO.inserir(professor);
-            return "Professor cadastrado com sucesso.";
-        } catch (SQLException e) {
-            System.err.println("Erro ao cadastrar professor: " + e.getMessage());
-            return "Erro ao cadastrar professor: " + e.getMessage();
+    public void cadastrarProfessor(Professor p) throws SQLException {
+        if (usuarioDao.loginExiste(p.getUsuario().getLogin())) {
+            throw new SQLException("Login já existe.");
         }
+        professorDao.cadastrar(p);
     }
 
-    public String atualizarProfessor(Professor professor) {
-        try {
-            professorDAO.atualizar(professor);
-            return "Professor atualizado com sucesso.";
-        } catch (SQLException e) {
-            System.err.println("Erro ao atualizar professor: " + e.getMessage());
-            return "Erro ao atualizar professor: " + e.getMessage();
-        }
+    public void atualizarProfessor(Professor p) throws SQLException {
+        professorDao.atualizar(p);
     }
 
-    public String excluirProfessor(int id) {
-        try {
-            professorDAO.excluir(id);
-            return "Professor excluído com sucesso.";
-        } catch (SQLException e) {
-            System.err.println("Erro ao excluir professor: " + e.getMessage());
-            return "Erro ao excluir professor: " + e.getMessage();
-        }
+    public void excluirProfessor(int id) throws SQLException {
+        professorDao.excluir(id);
     }
 
-    public Professor buscarProfessorPorId(int id) {
-        try {
-            return professorDAO.buscarPorId(id);
-        } catch (SQLException e) {
-            System.err.println("Erro ao buscar professor: " + e.getMessage());
-            return null;
-        }
+    public Professor buscarPorId(int id) throws SQLException {
+        return professorDao.buscarPorId(id);
     }
 
-    public List<Professor> listarProfessores() {
-        try {
-            return professorDAO.listarTodos();
-        } catch (SQLException e) {
-            System.err.println("Erro ao listar professores: " + e.getMessage());
-            return null;
-        }
+    public List<Professor> listarProfessores() throws SQLException {
+        return professorDao.listarTodos();
+    }
+
+    public List<Disciplina> listarDisciplinas() throws SQLException {
+        return disciplinaDao.listarTodos();
     }
 }

@@ -75,13 +75,7 @@ public class TelaCadastroUsuario extends JFrame {
 
         JLabel lbNivelAcesso = new JLabel("Nível de Acesso:");
 
-        if (usuarioLogado.getNivelAcesso() == 1) {
-            cbNivelAcesso = new JComboBox<>(new String[] { "SuperUsuario" });
-        } else {
-            cbNivelAcesso = new JComboBox<>(new String[] {
-                "SecretarioEducacao", "SuperUsuario", "Diretor", "SecretarioEscolar", "Professor"
-            });
-        }
+        cbNivelAcesso = new JComboBox<>(niveisPermitidos(usuarioLogado.getNivelAcesso()));
 
         btnCadastrar = new JButton(usuarioEditando == null ? "Cadastrar" : "Salvar");
         btnVoltar = new JButton("Voltar");
@@ -134,10 +128,14 @@ public class TelaCadastroUsuario extends JFrame {
 
         String nivelStr = nivelAcessoIdParaString(usuarioEditando.getNivelAcesso());
 
-        if (usuarioLogado.getNivelAcesso() == 1) {
-            // Secretário só pode ver SuperUsuario
-            cbNivelAcesso.setSelectedItem("SuperUsuario");
-        } else {
+        boolean existe = false;
+        for (int i = 0; i < cbNivelAcesso.getItemCount(); i++) {
+            if (cbNivelAcesso.getItemAt(i).equals(nivelStr)) {
+                existe = true;
+                break;
+            }
+        }
+        if (existe) {
             cbNivelAcesso.setSelectedItem(nivelStr);
         }
     }
@@ -159,9 +157,8 @@ public class TelaCadastroUsuario extends JFrame {
             return;
         }
 
-        // Se for Secretário (nível 1), só pode cadastrar nível 2
-        if (usuarioLogado.getNivelAcesso() == 1 && nivelAcessoId != 2) {
-            JOptionPane.showMessageDialog(this, "Secretário só pode cadastrar usuários do nível SuperUsuario.", "Erro", JOptionPane.ERROR_MESSAGE);
+        if (!podeCadastrarNivel(usuarioLogado.getNivelAcesso(), nivelAcessoId)) {
+            JOptionPane.showMessageDialog(this, "Você não tem permissão para cadastrar usuários desse nível.", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -174,7 +171,7 @@ public class TelaCadastroUsuario extends JFrame {
                 novo.setTelefone(telefone);
                 novo.setCargo(cargo);
                 novo.setLogin(login);
-                novo.setSenha(Criptografia.criptografar(senha));
+                novo.setSenha(senha); // senha em texto puro
                 novo.setNivelAcesso(nivelAcessoId);
 
                 usuarioController.cadastrarUsuario(novo);
@@ -187,7 +184,7 @@ public class TelaCadastroUsuario extends JFrame {
                 usuarioEditando.setCargo(cargo);
                 usuarioEditando.setLogin(login);
                 if (!senha.isEmpty()) {
-                    usuarioEditando.setSenha(Criptografia.criptografar(senha));
+                    usuarioEditando.setSenha(senha); // senha em texto puro
                 }
                 usuarioEditando.setNivelAcesso(nivelAcessoId);
 
@@ -197,6 +194,36 @@ public class TelaCadastroUsuario extends JFrame {
             dispose();
         } catch (SQLException | IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean podeCadastrarNivel(int nivelUsuarioLogado, int nivelSelecionado) {
+        switch (nivelUsuarioLogado) {
+            case 1: // Secretário Educação
+                return nivelSelecionado == 2 || nivelSelecionado == 3;
+            case 2: // SuperUsuario
+                return nivelSelecionado == 3;
+            case 3: // Diretor
+                return nivelSelecionado == 4;
+            case 4: // Secretário Escolar
+                return nivelSelecionado == 5;
+            default:
+                return false;
+        }
+    }
+
+    private String[] niveisPermitidos(int nivelUsuarioLogado) {
+        switch (nivelUsuarioLogado) {
+            case 1:
+                return new String[] { "SuperUsuario", "Diretor" };
+            case 2:
+                return new String[] { "Diretor" };
+            case 3:
+                return new String[] { "SecretarioEscolar" };
+            case 4:
+                return new String[] { "Professor" };
+            default:
+                return new String[] {};
         }
     }
 

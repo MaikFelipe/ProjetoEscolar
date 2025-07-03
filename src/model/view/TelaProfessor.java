@@ -12,13 +12,19 @@ import model.Usuario;
 import javax.swing.*;
 import java.awt.*;
 
-public class TelaSecretarioEducacao extends JFrame {
+public class TelaProfessor extends JFrame {
 
     private Usuario usuarioLogado;
     private final Color fundoClaro = new Color(245, 245, 245);
 
-    public TelaSecretarioEducacao(Usuario usuarioLogado) {
+    public TelaProfessor(Usuario usuarioLogado) {
         this.usuarioLogado = usuarioLogado;
+
+        if (usuarioLogado.getNivelAcesso() != 5) {
+            JOptionPane.showMessageDialog(null, "Acesso negado. Você não tem permissão para acessar esta tela.");
+            dispose();
+            return;
+        }
 
         setUndecorated(true);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -31,28 +37,25 @@ public class TelaSecretarioEducacao extends JFrame {
         painelSuperior.setBorder(BorderFactory.createEmptyBorder(20, 0, 10, 0));
         painelSuperior.setBackground(fundoClaro);
 
-        JLabel mensagem = new JLabel("Bem-vindo, Secretário " + usuarioLogado.getNomeCompleto(), SwingConstants.CENTER);
+        JLabel mensagem = new JLabel("Bem-vindo, Professor " + usuarioLogado.getNomeCompleto(), SwingConstants.CENTER);
         mensagem.setFont(new Font("Arial", Font.PLAIN, 22));
         mensagem.setAlignmentX(Component.CENTER_ALIGNMENT);
         painelSuperior.add(mensagem);
         add(painelSuperior, BorderLayout.NORTH);
 
-        JLabel titulo = new JLabel("Sistema de Gestão Escolar - Secretário de Educação", SwingConstants.CENTER);
+        JLabel titulo = new JLabel("Sistema de Gestão Escolar - Professor", SwingConstants.CENTER);
         titulo.setFont(new Font("Arial", Font.BOLD, 26));
         titulo.setBorder(BorderFactory.createEmptyBorder(20, 0, 20, 0));
         add(titulo, BorderLayout.SOUTH);
 
-        JPanel painelCentral = new JPanel();
-        painelCentral.setLayout(new BoxLayout(painelCentral, BoxLayout.Y_AXIS));
-        painelCentral.setBorder(BorderFactory.createEmptyBorder(50, 400, 50, 400));
+        JPanel painelCentral = new JPanel(new GridLayout(0, 2, 30, 30));
+        painelCentral.setBorder(BorderFactory.createEmptyBorder(100, 300, 100, 300));
         painelCentral.setBackground(fundoClaro);
 
-        painelCentral.add(criarCard("Secretário de Educação", e -> abrirTelaUsuarios()));
-        painelCentral.add(Box.createVerticalStrut(30));
-        painelCentral.add(criarCard("Escolas", e -> abrirTelaEscolas()));
-        painelCentral.add(Box.createVerticalStrut(30));
-        painelCentral.add(criarCard("Relatórios", e -> abrirTelaRelatorios()));
-        painelCentral.add(Box.createVerticalStrut(50));
+        painelCentral.add(criarCard("Lançar Notas", e -> abrirTelaLancamentoNotas()));
+        painelCentral.add(criarCard("Gerenciar Notas", e -> abrirTelaGerenciarNotas()));
+        painelCentral.add(criarCard("Registrar Frequência", e -> abrirTelaRegistrarFrequencia()));
+        painelCentral.add(criarCard("Gerenciar Frequência", e -> abrirTelaGerenciarFrequencia()));
         painelCentral.add(criarCard("Sair", e -> sair()));
 
         add(painelCentral, BorderLayout.CENTER);
@@ -71,6 +74,8 @@ public class TelaSecretarioEducacao extends JFrame {
         botao.setBackground(new Color(70, 130, 180));
         botao.setForeground(Color.WHITE);
         botao.setPreferredSize(new Dimension(400, 50));
+        botao.setMaximumSize(new Dimension(400, 50));
+        botao.setMinimumSize(new Dimension(400, 50));
         botao.setBorderPainted(false);
         botao.setFocusPainted(false);
         botao.setContentAreaFilled(true);
@@ -80,16 +85,20 @@ public class TelaSecretarioEducacao extends JFrame {
         return card;
     }
 
-    private void abrirTelaUsuarios() {
-        new TelaUsuarios(usuarioLogado).setVisible(true);
+    private void abrirTelaLancamentoNotas() {
+        new TelaLancarNotas().setVisible(true);
     }
 
-    private void abrirTelaEscolas() {
-        new TelaEscolas().setVisible(true);
+    private void abrirTelaGerenciarNotas() {
+        new TelaGerenciarNotas(usuarioLogado).setVisible(true);
     }
 
-    private void abrirTelaRelatorios() {
-        JOptionPane.showMessageDialog(this, "Tela de Relatórios ainda não implementada.");
+    private void abrirTelaRegistrarFrequencia() {
+        new TelaRegistrarFrequencia(usuarioLogado).setVisible(true);
+    }
+
+    private void abrirTelaGerenciarFrequencia() {
+        new TelaGerenciarFrequencia(usuarioLogado).setVisible(true);
     }
 
     private void sair() {
@@ -100,11 +109,11 @@ public class TelaSecretarioEducacao extends JFrame {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             Usuario u = new Usuario();
-            u.setId(1);
-            u.setNomeCompleto("Secretário");
-            u.setLogin("secretario");
-            u.setNivelAcesso(1);
-            new TelaSecretarioEducacao(u).setVisible(true);
+            u.setId(5);
+            u.setNomeCompleto("João Professor");
+            u.setLogin("joao.prof");
+            u.setNivelAcesso(5);
+            new TelaProfessor(u).setVisible(true);
         });
     }
 }

@@ -8,7 +8,7 @@ package model.dao;
  *
  * @author LASEDi 1781
  */
-// FrequenciaDAO.java
+
 import model.Frequencia;
 import java.sql.*;
 import java.time.LocalDate;

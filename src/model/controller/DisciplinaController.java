@@ -13,12 +13,13 @@ import model.Disciplina;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import model.util.Conexao;
 
 public class DisciplinaController {
     private DisciplinaDAO dao;
 
-    public DisciplinaController(Connection connection) {
-        this.dao = new DisciplinaDAO(connection);
+    public DisciplinaController() throws SQLException {
+        this.dao = new DisciplinaDAO(Conexao.getConexao());
     }
 
     public void salvar(Disciplina d) throws SQLException {

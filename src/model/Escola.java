@@ -17,31 +17,19 @@ public class Escola {
     private String telefone;
     private String email;
     private Usuario usuarioDiretor;
-    
-    public Escola() {}
-    
-    public Escola(int id, String nome, String enderecoCompleto, String bairro, Municipio municipio, String telefone, String email, Usuario usuarioDiretor) {
-        this.id = id;
-        this.nome = nome;
-        this.enderecoCompleto = enderecoCompleto;
-        this.bairro = bairro;
-        this.municipio = municipio;
-        this.telefone = telefone;
-        this.email = email;
-        this.usuarioDiretor = usuarioDiretor;
-    }
-    
-    
+
     public int getId() {
         return id;
     }
+
     public void setId(int id) {
         this.id = id;
     }
 
-    public String getNome() { 
+    public String getNome() {
         return nome;
     }
+
     public void setNome(String nome) {
         this.nome = nome;
     }
@@ -49,13 +37,15 @@ public class Escola {
     public String getEnderecoCompleto() {
         return enderecoCompleto;
     }
-    public void setEnderecoCompleto(String enderecoCompleto) { 
-        this.enderecoCompleto = enderecoCompleto; 
+
+    public void setEnderecoCompleto(String enderecoCompleto) {
+        this.enderecoCompleto = enderecoCompleto;
     }
 
     public String getBairro() {
         return bairro;
     }
+
     public void setBairro(String bairro) {
         this.bairro = bairro;
     }
@@ -63,6 +53,7 @@ public class Escola {
     public Municipio getMunicipio() {
         return municipio;
     }
+
     public void setMunicipio(Municipio municipio) {
         this.municipio = municipio;
     }
@@ -70,21 +61,29 @@ public class Escola {
     public String getTelefone() {
         return telefone;
     }
+
     public void setTelefone(String telefone) {
         this.telefone = telefone;
     }
 
-    public String getEmail() { 
+    public String getEmail() {
         return email;
     }
-    public void setEmail(String email) { 
+
+    public void setEmail(String email) {
         this.email = email;
     }
 
     public Usuario getUsuarioDiretor() {
-        return usuarioDiretor; 
+        return usuarioDiretor;
     }
+
     public void setUsuarioDiretor(Usuario usuarioDiretor) {
-        this.usuarioDiretor = usuarioDiretor; 
+        this.usuarioDiretor = usuarioDiretor;
+    }
+
+    @Override
+    public String toString() {
+        return nome;
     }
 }

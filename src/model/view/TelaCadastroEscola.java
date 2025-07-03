@@ -8,161 +8,175 @@ package model.view;
  *
  * @author LASEDi 1781
  */
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.List;
 import model.Escola;
 import model.Municipio;
 import model.Usuario;
 import model.controller.EscolaController;
-import model.dao.MunicipioDAO;
-import model.dao.UsuarioDao;
+import model.controller.MunicipioController;
+import model.controller.UsuarioController;
 import model.util.Conexao;
+import javax.swing.*;
+import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
 
 public class TelaCadastroEscola extends JFrame {
 
     private JTextField tfNome, tfEndereco, tfBairro, tfTelefone, tfEmail;
     private JComboBox<Municipio> cbMunicipio;
     private JComboBox<Usuario> cbDiretor;
-    private JButton btnCadastrar, btnVoltar;
+    private JButton btnSalvar, btnCancelar;
     private EscolaController escolaController;
-    private Connection connection;
+    private MunicipioController municipioController;
+    private UsuarioController usuarioController;
+    private Escola escola;
+    private TelaEscolas telaEscolas;
 
-    public TelaCadastroEscola() {
+    public TelaCadastroEscola(TelaEscolas telaEscolas, Escola escola) {
+        this.telaEscolas = telaEscolas;
+        this.escola = escola;
+
+        setTitle(escola == null ? "Nova Escola" : "Editar Escola");
+        setSize(400, 450);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new GridBagLayout());
+
         try {
-            connection = Conexao.getConexao();
-            escolaController = new EscolaController(connection);
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
-            dispose();
+            Connection conn = Conexao.getConexao();
+            escolaController = new EscolaController(conn);
+            municipioController = new MunicipioController(conn);
+            usuarioController = new UsuarioController();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao conectar: " + e.getMessage());
             return;
         }
 
-        configurarJanela();
-        criarComponentes();
-        carregarMunicipios();
-        carregarDiretores();
-        setVisible(true);
-    }
-
-    private void configurarJanela() {
-        setTitle("Cadastro de Escola");
-        setSize(600, 400);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout());
-    }
-
-    private void criarComponentes() {
-        JPanel painel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        tfNome = new JTextField(25);
-        tfEndereco = new JTextField(25);
-        tfBairro = new JTextField(15);
-        tfTelefone = new JTextField(15);
-        tfEmail = new JTextField(25);
+        tfNome = new JTextField();
+        tfEndereco = new JTextField();
+        tfBairro = new JTextField();
+        tfTelefone = new JTextField();
+        tfEmail = new JTextField();
         cbMunicipio = new JComboBox<>();
         cbDiretor = new JComboBox<>();
-        btnCadastrar = new JButton("Cadastrar");
-        btnVoltar = new JButton("Voltar");
 
-        btnCadastrar.addActionListener(e -> cadastrarEscola());
-        btnVoltar.addActionListener(e -> dispose());
+        carregarMunicipios();
+        carregarDiretores();
 
-        int y = 0;
+        gbc.gridx = 0; gbc.gridy = 0;
+        add(new JLabel("Nome:"), gbc);
+        gbc.gridx = 1;
+        add(tfNome, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Nome:"), gbc);
-        gbc.gridx = 1; painel.add(tfNome, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Endereço Completo:"), gbc);
+        gbc.gridx = 1;
+        add(tfEndereco, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Endereço:"), gbc);
-        gbc.gridx = 1; painel.add(tfEndereco, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Bairro:"), gbc);
+        gbc.gridx = 1;
+        add(tfBairro, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Bairro:"), gbc);
-        gbc.gridx = 1; painel.add(tfBairro, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Município:"), gbc);
+        gbc.gridx = 1;
+        add(cbMunicipio, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Telefone:"), gbc);
-        gbc.gridx = 1; painel.add(tfTelefone, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Telefone:"), gbc);
+        gbc.gridx = 1;
+        add(tfTelefone, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("E-mail:"), gbc);
-        gbc.gridx = 1; painel.add(tfEmail, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Email:"), gbc);
+        gbc.gridx = 1;
+        add(tfEmail, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Município:"), gbc);
-        gbc.gridx = 1; painel.add(cbMunicipio, gbc); y++;
+        gbc.gridx = 0; gbc.gridy++;
+        add(new JLabel("Diretor:"), gbc);
+        gbc.gridx = 1;
+        add(cbDiretor, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; painel.add(new JLabel("Diretor:"), gbc);
-        gbc.gridx = 1; painel.add(cbDiretor, gbc); y++;
+        btnSalvar = new JButton("Salvar");
+        btnCancelar = new JButton("Cancelar");
 
-        JPanel painelBotoes = new JPanel();
-        painelBotoes.add(btnCadastrar);
-        painelBotoes.add(btnVoltar);
+        gbc.gridx = 0; gbc.gridy++;
+        add(btnSalvar, gbc);
+        gbc.gridx = 1;
+        add(btnCancelar, gbc);
 
-        gbc.gridx = 0; gbc.gridy = y; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        painel.add(painelBotoes, gbc);
+        if (escola != null) {
+            preencherCampos();
+        }
 
-        add(painel, BorderLayout.CENTER);
+        btnSalvar.addActionListener(e -> salvar());
+        btnCancelar.addActionListener(e -> dispose());
     }
 
     private void carregarMunicipios() {
         try {
-            MunicipioDAO municipioDAO = new MunicipioDAO();
-            List<Municipio> municipios = municipioDAO.listarTodos();
-            cbMunicipio.removeAllItems();
+            List<Municipio> municipios = municipioController.listarTodos();
             for (Municipio m : municipios) {
                 cbMunicipio.addItem(m);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar municípios: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar municípios: " + e.getMessage());
         }
     }
 
     private void carregarDiretores() {
         try {
-            UsuarioDao dao = new UsuarioDao();
-            List<Usuario> diretores = dao.listarPorNivelAcesso("Diretor");
+            List<Usuario> diretores = usuarioController.listarPorNivelAcesso(3);
             cbDiretor.removeAllItems();
             for (Usuario u : diretores) {
                 cbDiretor.addItem(u);
             }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar diretores: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar diretores: " + e.getMessage());
         }
     }
 
-    private void cadastrarEscola() {
-        String nome = tfNome.getText().trim();
-        String endereco = tfEndereco.getText().trim();
-        String bairro = tfBairro.getText().trim();
-        String telefone = tfTelefone.getText().trim();
-        String email = tfEmail.getText().trim();
-        Municipio municipio = (Municipio) cbMunicipio.getSelectedItem();
-        Usuario diretor = (Usuario) cbDiretor.getSelectedItem();
 
-        if (nome.isEmpty() || endereco.isEmpty() || bairro.isEmpty() || telefone.isEmpty() || email.isEmpty()
-                || municipio == null || diretor == null) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos.", "Aviso", JOptionPane.WARNING_MESSAGE);
+    private void preencherCampos() {
+        tfNome.setText(escola.getNome());
+        tfEndereco.setText(escola.getEnderecoCompleto());
+        tfBairro.setText(escola.getBairro());
+        tfTelefone.setText(escola.getTelefone());
+        tfEmail.setText(escola.getEmail());
+        cbMunicipio.setSelectedItem(escola.getMunicipio());
+        cbDiretor.setSelectedItem(escola.getUsuarioDiretor());
+    }
+
+    private void salvar() {
+        if (tfNome.getText().isEmpty() || tfEndereco.getText().isEmpty() || tfBairro.getText().isEmpty() ||
+                tfTelefone.getText().isEmpty() || tfEmail.getText().isEmpty() ||
+                cbMunicipio.getSelectedItem() == null || cbDiretor.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Preencha todos os campos.");
             return;
         }
 
-        Escola escola = new Escola();
-        escola.setNome(nome);
-        escola.setEnderecoCompleto(endereco + " - " + bairro);
-        escola.setTelefone(telefone);
-        escola.setEmail(email);
-        escola.setMunicipio(municipio);
-        escola.setUsuarioDiretor(diretor);
+        if (escola == null) escola = new Escola();
+
+        escola.setNome(tfNome.getText().trim());
+        escola.setEnderecoCompleto(tfEndereco.getText().trim());
+        escola.setBairro(tfBairro.getText().trim());
+        escola.setTelefone(tfTelefone.getText().trim());
+        escola.setEmail(tfEmail.getText().trim());
+        escola.setMunicipio((Municipio) cbMunicipio.getSelectedItem());
+        escola.setUsuarioDiretor((Usuario) cbDiretor.getSelectedItem());
 
         try {
             escolaController.salvar(escola);
-            JOptionPane.showMessageDialog(this, "Escola cadastrada com sucesso.");
+            telaEscolas.carregarTabela();
             dispose();
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao cadastrar escola: " + ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar escola: " + e.getMessage());
         }
     }
-}
+} 

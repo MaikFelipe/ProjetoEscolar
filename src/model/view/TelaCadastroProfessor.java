@@ -8,165 +8,183 @@ package model.view;
  *
  * @author LASEDi 1781
  */
-import model.Professor;
 import model.Usuario;
+import model.Professor;
+import model.Disciplina;
+import model.controller.UsuarioController;
 import model.controller.ProfessorController;
-
+import model.controller.DisciplinaController;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.List;
 
 public class TelaCadastroProfessor extends JFrame {
 
-    private JTextField tfNome, tfCpf, tfEmail, tfTelefone;
+    private JTextField tfNome, tfCpf, tfEmail, tfTelefone, tfCargo, tfLogin;
+    private JPasswordField pfSenha;
+    private JComboBox<Disciplina> cbDisciplinas;
     private JTextArea taObservacoes;
-    private JButton btnSalvar, btnAtualizar, btnExcluir, btnVoltar;
-    private JTable tabelaProfessores;
-    private DefaultTableModel tabelaModel;
-    private ProfessorController controller;
-    private int idSelecionado = -1;
-    private Usuario usuarioLogado;
+    private JButton btnSalvar, btnLimpar, btnCancelar;
+    private List<Disciplina> listaDisciplinas;
+    private Professor professorEditando;
 
-    public TelaCadastroProfessor(Usuario usuario) {
-        this.usuarioLogado = usuario;
-        controller = new ProfessorController();
-        setTitle("Cadastro de Professor");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+    public TelaCadastroProfessor(JFrame parent, Professor professor) {
+        setTitle(professor == null ? "Cadastro de Professor" : "Editar Professor");
+        setSize(450, 500);
+        setLocationRelativeTo(parent);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         initComponents();
-        carregarProfessores();
-        setVisible(true);
+        loadDisciplinas();
+
+        this.professorEditando = professor;
+        if (professor != null) {
+            carregarCampos(professor);
+        }
     }
 
     private void initComponents() {
-        JPanel painelPrincipal = new JPanel(new BorderLayout(10, 10));
-        JPanel painelFormulario = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JPanel painel = new JPanel();
+        painel.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(5, 5, 5, 5);
+        c.fill = GridBagConstraints.HORIZONTAL;
 
-        tfNome = new JTextField(30);
+        tfNome = new JTextField(25);
         tfCpf = new JTextField(15);
-        tfEmail = new JTextField(30);
+        tfEmail = new JTextField(25);
         tfTelefone = new JTextField(15);
-        taObservacoes = new JTextArea(5, 30);
-        JScrollPane spObservacoes = new JScrollPane(taObservacoes);
+        tfCargo = new JTextField(15);
+        tfLogin = new JTextField(15);
+        pfSenha = new JPasswordField(15);
+        taObservacoes = new JTextArea(5, 25);
+        taObservacoes.setLineWrap(true);
+        taObservacoes.setWrapStyleWord(true);
+        JScrollPane spObs = new JScrollPane(taObservacoes);
 
-        gbc.gridx = 0; gbc.gridy = 0; painelFormulario.add(new JLabel("Nome:"), gbc);
-        gbc.gridx = 1; painelFormulario.add(tfNome, gbc);
+        cbDisciplinas = new JComboBox<>();
 
-        gbc.gridx = 0; gbc.gridy = 1; painelFormulario.add(new JLabel("CPF:"), gbc);
-        gbc.gridx = 1; painelFormulario.add(tfCpf, gbc);
+        btnSalvar = new JButton("Salvar");
+        btnLimpar = new JButton("Limpar");
+        btnCancelar = new JButton("Cancelar");
 
-        gbc.gridx = 0; gbc.gridy = 2; painelFormulario.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1; painelFormulario.add(tfEmail, gbc);
+        int y = 0;
 
-        gbc.gridx = 0; gbc.gridy = 3; painelFormulario.add(new JLabel("Telefone:"), gbc);
-        gbc.gridx = 1; painelFormulario.add(tfTelefone, gbc);
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Nome Completo:"), c);
+        c.gridx = 1; painel.add(tfNome, c); y++;
 
-        gbc.gridx = 0; gbc.gridy = 4; painelFormulario.add(new JLabel("Observações:"), gbc);
-        gbc.gridx = 1; painelFormulario.add(spObservacoes, gbc);
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("CPF:"), c);
+        c.gridx = 1; painel.add(tfCpf, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Email:"), c);
+        c.gridx = 1; painel.add(tfEmail, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Telefone:"), c);
+        c.gridx = 1; painel.add(tfTelefone, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Cargo:"), c);
+        c.gridx = 1; painel.add(tfCargo, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Login:"), c);
+        c.gridx = 1; painel.add(tfLogin, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Senha:"), c);
+        c.gridx = 1; painel.add(pfSenha, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Disciplina:"), c);
+        c.gridx = 1; painel.add(cbDisciplinas, c); y++;
+
+        c.gridx = 0; c.gridy = y; painel.add(new JLabel("Observações:"), c);
+        c.gridx = 1; painel.add(spObs, c); y++;
 
         JPanel painelBotoes = new JPanel();
-        btnSalvar = new JButton("Salvar");
-        btnAtualizar = new JButton("Atualizar");
-        btnExcluir = new JButton("Excluir");
-        btnVoltar = new JButton("Voltar");
-
         painelBotoes.add(btnSalvar);
-        painelBotoes.add(btnAtualizar);
-        painelBotoes.add(btnExcluir);
-        painelBotoes.add(btnVoltar);
+        painelBotoes.add(btnLimpar);
+        painelBotoes.add(btnCancelar);
 
-        tabelaModel = new DefaultTableModel(new String[]{"ID", "Nome", "CPF", "Email", "Telefone", "Observações"}, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) { return false; }
-        };
+        c.gridx = 0; c.gridy = y; c.gridwidth = 2;
+        painel.add(painelBotoes, c);
 
-        tabelaProfessores = new JTable(tabelaModel);
-        tabelaProfessores.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane spTabela = new JScrollPane(tabelaProfessores);
-
-        painelPrincipal.add(painelFormulario, BorderLayout.NORTH);
-        painelPrincipal.add(painelBotoes, BorderLayout.CENTER);
-        painelPrincipal.add(spTabela, BorderLayout.SOUTH);
-        add(painelPrincipal);
+        add(painel);
 
         btnSalvar.addActionListener(e -> salvarProfessor());
-        btnAtualizar.addActionListener(e -> atualizarProfessor());
-        btnExcluir.addActionListener(e -> excluirProfessor());
-        btnVoltar.addActionListener(e -> voltar());
+        btnLimpar.addActionListener(e -> limparCampos());
+        btnCancelar.addActionListener(e -> dispose());
+    }
 
-        tabelaProfessores.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) carregarProfessorSelecionado();
-        });
+    private void loadDisciplinas() {
+        try {
+            DisciplinaController dc = new DisciplinaController();
+            listaDisciplinas = dc.listarTodos();
+            DefaultComboBoxModel<Disciplina> model = new DefaultComboBoxModel<>();
+            for (Disciplina d : listaDisciplinas) {
+                model.addElement(d);
+            }
+            cbDisciplinas.setModel(model);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar disciplinas: " + e.getMessage());
+        }
+    }
+
+    private void carregarCampos(Professor p) {
+        Usuario u = p.getUsuario();
+        tfNome.setText(u.getNomeCompleto());
+        tfCpf.setText(u.getCpf());
+        tfEmail.setText(u.getEmail());
+        tfTelefone.setText(u.getTelefone());
+        tfCargo.setText(u.getCargo());
+        tfLogin.setText(u.getLogin());
+        pfSenha.setText("");
+        taObservacoes.setText(p.getObservacoes());
+        if (p.getDisciplina() != null) {
+            cbDisciplinas.setSelectedItem(p.getDisciplina());
+        }
     }
 
     private void salvarProfessor() {
         try {
-            Professor p = new Professor();
-            p.setNome(tfNome.getText().trim());
-            p.setCpf(tfCpf.getText().trim());
-            p.setEmail(tfEmail.getText().trim());
-            p.setTelefone(tfTelefone.getText().trim());
-            p.setObservacoes(taObservacoes.getText().trim());
-
-            String msg = controller.cadastrarProfessor(p);
-            JOptionPane.showMessageDialog(this, msg);
-            limparCampos();
-            carregarProfessores();
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar: " + ex.getMessage());
-        }
-    }
-
-    private void atualizarProfessor() {
-        if (idSelecionado < 0) {
-            JOptionPane.showMessageDialog(this, "Selecione um professor para atualizar.");
-            return;
-        }
-        try {
-            Professor p = new Professor();
-            p.setId(idSelecionado);
-            p.setNome(tfNome.getText().trim());
-            p.setCpf(tfCpf.getText().trim());
-            p.setEmail(tfEmail.getText().trim());
-            p.setTelefone(tfTelefone.getText().trim());
-            p.setObservacoes(taObservacoes.getText().trim());
-
-            String msg = controller.atualizarProfessor(p);
-            JOptionPane.showMessageDialog(this, msg);
-            limparCampos();
-            carregarProfessores();
-            idSelecionado = -1;
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao atualizar: " + ex.getMessage());
-        }
-    }
-
-    private void excluirProfessor() {
-        if (idSelecionado < 0) {
-            JOptionPane.showMessageDialog(this, "Selecione um professor para excluir.");
-            return;
-        }
-        int confirm = JOptionPane.showConfirmDialog(this, "Confirma exclusão do professor selecionado?", "Confirmação", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                String msg = controller.excluirProfessor(idSelecionado);
-                JOptionPane.showMessageDialog(this, msg);
-                limparCampos();
-                carregarProfessores();
-                idSelecionado = -1;
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Erro ao excluir: " + ex.getMessage());
+            if (tfNome.getText().trim().isEmpty() || tfLogin.getText().trim().isEmpty() || (professorEditando == null && pfSenha.getPassword().length == 0)) {
+                JOptionPane.showMessageDialog(this, "Preencha nome, login e senha.");
+                return;
             }
-        }
-    }
 
-    private void voltar() {
-        dispose();
-        new TelaPrincipal(usuarioLogado).setVisible(true);
+            Usuario usuario = professorEditando != null ? professorEditando.getUsuario() : new Usuario();
+
+            usuario.setNomeCompleto(tfNome.getText().trim());
+            usuario.setCpf(tfCpf.getText().trim());
+            usuario.setEmail(tfEmail.getText().trim());
+            usuario.setTelefone(tfTelefone.getText().trim());
+            usuario.setCargo(tfCargo.getText().trim());
+            usuario.setLogin(tfLogin.getText().trim());
+
+            if (pfSenha.getPassword().length > 0) {
+                usuario.setSenha(new String(pfSenha.getPassword())); // sem criptografia
+            } else if (professorEditando == null) {
+                JOptionPane.showMessageDialog(this, "Senha é obrigatória para novo cadastro.");
+                return;
+            }
+
+            usuario.setNivelAcesso(5); // Professor
+
+            Professor professor = professorEditando != null ? professorEditando : new Professor();
+            professor.setUsuario(usuario);
+            professor.setDisciplina((Disciplina) cbDisciplinas.getSelectedItem());
+            professor.setObservacoes(taObservacoes.getText().trim());
+
+            ProfessorController pc = new ProfessorController();
+
+            if (professorEditando == null) {
+                pc.cadastrarProfessor(professor);
+                JOptionPane.showMessageDialog(this, "Professor cadastrado com sucesso!");
+            } else {
+                pc.atualizarProfessor(professor);
+                JOptionPane.showMessageDialog(this, "Professor atualizado com sucesso!");
+            }
+
+            dispose();
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao salvar professor: " + ex.getMessage());
+        }
     }
 
     private void limparCampos() {
@@ -174,34 +192,18 @@ public class TelaCadastroProfessor extends JFrame {
         tfCpf.setText("");
         tfEmail.setText("");
         tfTelefone.setText("");
+        tfCargo.setText("");
+        tfLogin.setText("");
+        pfSenha.setText("");
         taObservacoes.setText("");
-        tabelaProfessores.clearSelection();
-        idSelecionado = -1;
-    }
-
-    private void carregarProfessores() {
-        try {
-            List<Professor> lista = controller.listarProfessores();
-            tabelaModel.setRowCount(0);
-            for (Professor p : lista) {
-                tabelaModel.addRow(new Object[]{
-                        p.getId(), p.getNome(), p.getCpf(), p.getEmail(), p.getTelefone(), p.getObservacoes()
-                });
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Erro ao carregar professores: " + e.getMessage());
+        if (cbDisciplinas.getItemCount() > 0) {
+            cbDisciplinas.setSelectedIndex(0);
         }
     }
 
-    private void carregarProfessorSelecionado() {
-        int linha = tabelaProfessores.getSelectedRow();
-        if (linha >= 0) {
-            idSelecionado = (int) tabelaModel.getValueAt(linha, 0);
-            tfNome.setText((String) tabelaModel.getValueAt(linha, 1));
-            tfCpf.setText((String) tabelaModel.getValueAt(linha, 2));
-            tfEmail.setText((String) tabelaModel.getValueAt(linha, 3));
-            tfTelefone.setText((String) tabelaModel.getValueAt(linha, 4));
-            taObservacoes.setText((String) tabelaModel.getValueAt(linha, 5));
-        }
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new TelaCadastroProfessor(null, null).setVisible(true);
+        });
     }
 }

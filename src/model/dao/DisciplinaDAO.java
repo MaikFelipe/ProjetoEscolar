@@ -17,7 +17,7 @@ public class DisciplinaDAO {
     }
 
     public void inserir(Disciplina d) throws SQLException {
-        String sql = "INSERT INTO disciplina (nome) VALUES (?, ?)";
+        String sql = "INSERT INTO disciplina (nome) VALUES (?)";
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, d.getNome());
             stmt.executeUpdate();
@@ -32,7 +32,7 @@ public class DisciplinaDAO {
         String sql = "UPDATE disciplina SET nome=? WHERE id=?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, d.getNome());
-            stmt.setInt(3, d.getId());
+            stmt.setInt(2, d.getId());
             stmt.executeUpdate();
         }
     }

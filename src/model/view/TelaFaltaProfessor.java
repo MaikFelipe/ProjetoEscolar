@@ -8,66 +8,68 @@ package model.view;
  *
  * @author LASEDi 1781
  */
+import java.time.format.DateTimeFormatter;
+import model.FaltaProfessor;
+import model.controller.FaltaProfessorController;
+import model.util.Conexao;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import model.Professor;
-import model.controller.ProfessorController;
-import model.Usuario;
 
 public class TelaFaltaProfessor extends JFrame {
 
-    private JTable tabelaFaltas;
+    private JTable tabela;
+    private DefaultTableModel tableModel;
     private JButton btnVoltar;
-    private ProfessorController controller;
-    private Usuario usuarioLogado;
 
-    public TelaFaltaProfessor(Usuario usuario) {
-        this.usuarioLogado = usuario;
-        controller = new ProfessorController();
-        setTitle("Faltas dos Professores");
-        setSize(800, 400);
+    public TelaFaltaProfessor() {
+        setTitle("Faltas de Professores");
+        setSize(700, 400);
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-        inicializarComponentes();
-        carregarDados();
-    }
-
-    private void inicializarComponentes() {
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        tabelaFaltas = new JTable();
-        JScrollPane scrollPane = new JScrollPane(tabelaFaltas);
+        String[] colunas = {"Professor", "Data da Falta", "Motivo", "Observações"};
+        tableModel = new DefaultTableModel(colunas, 0);
+        tabela = new JTable(tableModel);
 
         btnVoltar = new JButton("Voltar");
-        btnVoltar.addActionListener(e -> dispose());
+        JPanel painelInferior = new JPanel();
+        painelInferior.add(btnVoltar);
 
-        add(scrollPane, BorderLayout.CENTER);
-        add(btnVoltar, BorderLayout.SOUTH);
+        add(new JScrollPane(tabela), BorderLayout.CENTER);
+        add(painelInferior, BorderLayout.SOUTH);
+
+        carregarFaltas();
+
+        btnVoltar.addActionListener(e -> dispose());
     }
 
-    private void carregarDados() {
-        List<Professor> lista = controller.listarProfessores();
+    private void carregarFaltas() {
+        try (Connection conn = Conexao.getConexao()) {
+            FaltaProfessorController controller = new FaltaProfessorController(conn);
+            List<FaltaProfessor> faltas = controller.listarTodos();
 
-        DefaultTableModel modelo = new DefaultTableModel();
-        modelo.addColumn("ID");
-        modelo.addColumn("Nome");
-        modelo.addColumn("Email");
-        modelo.addColumn("Telefone");
-        modelo.addColumn("Faltas (Carga Horária Complementar)");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-        for (Professor p : lista) {
-            modelo.addRow(new Object[]{
-                p.getId(),
-                p.getNome(),
-                p.getEmail(),
-                p.getTelefone(),
-                p.getCargaHorariaComplementar() + " horas"
-            });
+            for (FaltaProfessor f : faltas) {
+                Professor professor = f.getProfessor();
+                String nome = professor != null && professor.getUsuario() != null
+                        ? professor.getUsuario().getNomeCompleto() : "Desconhecido";
+
+                String dataFormatada = f.getData() != null ? f.getData().format(formatter) : "";
+                String motivo = f.getMotivo() != null ? f.getMotivo() : "";
+                String observacoes = f.getDocumentoAnexo() != null ? f.getDocumentoAnexo() : "";
+
+                Object[] linha = {nome, dataFormatada, motivo, observacoes};
+                tableModel.addRow(linha);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar faltas: " + ex.getMessage());
         }
-
-        tabelaFaltas.setModel(modelo);
     }
 }

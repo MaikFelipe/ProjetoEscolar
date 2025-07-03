@@ -10,6 +10,8 @@ package model.controller;
  */
 import model.Usuario;
 import model.dao.UsuarioDao;
+import model.util.Conexao;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -18,7 +20,13 @@ public class UsuarioController {
     private UsuarioDao usuarioDao;
 
     public UsuarioController() {
-        usuarioDao = new UsuarioDao();
+        try {
+            Connection conn = Conexao.getConexao();
+            this.usuarioDao = new UsuarioDao(conn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao conectar ao banco de dados.");
+        }
     }
 
     public void cadastrarUsuario(Usuario usuario) throws SQLException {
@@ -58,8 +66,8 @@ public class UsuarioController {
     public List<Usuario> listarPorNivelAcesso(int nivel) throws SQLException {
         return usuarioDao.listarPorNivelAcesso(String.valueOf(nivel));
     }
-    
-    public Usuario autenticar(String login, String senhaCriptografada) throws SQLException {
-        return usuarioDao.autenticar(login, senhaCriptografada);
+
+    public Usuario autenticar(String login, String senha) throws SQLException {
+        return usuarioDao.autenticar(login, senha);
     }
 }
